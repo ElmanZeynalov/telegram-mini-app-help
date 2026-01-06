@@ -96,7 +96,7 @@ export const useGuidanceNavigationStore = create<GuidanceNavigationStore>()((set
 
   goHome: () => set(initialState),
 
-  initialize: async (baseUrl: string = "http://localhost:3000") => {
+  initialize: async (baseUrl: string = "") => {
     try {
       const [catsRes, questionsRes] = await Promise.all([
         fetch(`${baseUrl}/api/categories`),
