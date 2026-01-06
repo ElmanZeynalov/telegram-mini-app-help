@@ -20,12 +20,14 @@ export const useGuidanceNavigationStore = create<GuidanceNavigationStore>()((set
 
   selectCategory: (category: Category, getText: (text: any) => string) => {
     const { data } = get()
-    const rootQuestion = data.questions.find((q) => q.categoryId === category.id)
+    // data.questions contains only root questions (parentId === null) due to buildTree logic
+    // We want to show all root questions that belong to this category
+    const categoryQuestions = data.questions.filter((q) => q.categoryId === category.id)
 
     set({
       selectedCategory: category,
-      currentQuestions: rootQuestion?.subQuestions || [],
-      currentQuestion: rootQuestion || null,
+      currentQuestions: categoryQuestions,
+      currentQuestion: null,
       breadcrumbs: [{ id: category.id, label: getText(category.name), type: "category" }],
       navigationHistory: [],
       screen: "questions",
