@@ -425,21 +425,66 @@ function FlowBuilderContent() {
     }
   }
 
-  const saveAnswer = (questionId: string) => {
-    const updateQuestionsRecursive = (questions: Question[]): Question[] => {
-      return questions.map((q) => {
-        if (q.id === questionId) {
-          return { ...q, answer: { ...(q.answer || {}), [currentLang]: answerForm } }
+  const saveAnswer = async (questionId: string) => {
+    try {
+      // Find the question to get its current text (needed for translation upsert if we want to be safe, 
+      // though our API might handle partials if we struct it right. 
+      // But verify: API PUT expects { translations: [...] } and upserts.
+      // We will send both question and answer to be safe/consistent.)
+
+      // We need to find the current question content to send it along with the answer
+      // Helper to find recursively
+      const findQ = (qs: Question[], id: string): Question | null => {
+        for (const q of qs) {
+          if (q.id === id) return q
+          if (q.subQuestions) {
+            const found = findQ(q.subQuestions, id)
+            if (found) return found
+          }
         }
-        if (q.subQuestions) {
-          return { ...q, subQuestions: updateQuestionsRecursive(q.subQuestions) }
-        }
-        return q
+        return null
+      }
+
+      const currentQ = findQ(flows.questions, questionId)
+      if (!currentQ) return
+
+      const currentQuestionText = currentQ.question[currentLang] || "" // Fallback or Keep existing
+
+      const res = await fetch('/api/questions', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: questionId,
+          translations: [{
+            language: currentLang,
+            question: currentQuestionText,
+            answer: answerForm
+          }]
+        })
       })
+
+      if (!res.ok) throw new Error("Failed to save answer")
+      const updatedQ = await res.json()
+
+      const updateQuestionsRecursive = (questions: Question[]): Question[] => {
+        return questions.map((q) => {
+          if (q.id === questionId) {
+            // Merge the answer. 
+            // Update local state map from API response or manually
+            return { ...q, answer: { ...(q.answer || {}), [currentLang]: answerForm } }
+          }
+          if (q.subQuestions) {
+            return { ...q, subQuestions: updateQuestionsRecursive(q.subQuestions) }
+          }
+          return q
+        })
+      }
+      setFlows({ ...flows, questions: updateQuestionsRecursive(flows.questions) })
+      setActivePanel(null)
+      setAnswerForm("")
+    } catch (e) {
+      console.error("Failed to save answer", e)
     }
-    setFlows({ ...flows, questions: updateQuestionsRecursive(flows.questions) })
-    setActivePanel(null)
-    setAnswerForm("")
   }
 
   const addSubQuestion = async (parentId: string) => {
