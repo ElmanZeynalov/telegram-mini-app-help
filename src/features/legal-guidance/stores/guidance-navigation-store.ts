@@ -101,6 +101,16 @@ export const useGuidanceNavigationStore = create<GuidanceNavigationStore>()((set
 
   goHome: () => set(initialState),
 
+  goToCategories: () => set({
+    screen: "categories",
+    selectedCategory: null,
+    currentQuestions: [],
+    currentQuestion: null,
+    currentAnswer: null,
+    breadcrumbs: [],
+    navigationHistory: [],
+  }),
+
   initialize: async (baseUrl: string = "") => {
     try {
       const [catsRes, questionsRes] = await Promise.all([

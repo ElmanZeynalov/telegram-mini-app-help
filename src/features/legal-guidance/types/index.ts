@@ -63,6 +63,7 @@ export interface GuidanceNavigationActions {
   selectQuestion: (question: Question, getText: (text: any) => string) => void
   goBack: () => void
   goHome: () => void
+  goToCategories: () => void
   initialize: (baseUrl?: string) => Promise<void>
 }
 

@@ -48,6 +48,7 @@ export function useLegalGuidance() {
     selectQuestion,
     goBack: navigationStore.goBack,
     goHome: navigationStore.goHome,
+    goToCategories: navigationStore.goToCategories,
     initialize: navigationStore.initialize,
   }
 }

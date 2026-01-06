@@ -8,13 +8,13 @@ import ReactMarkdown from "react-markdown"
 import { AnswerFeedback } from "../feedback/answer-feedback"
 
 export function AnswerScreen() {
-  const { currentAnswer, breadcrumbs, goHome, t, selectedCategory, getText } = useLegalGuidance()
+  const { currentAnswer, breadcrumbs, goToCategories, t, selectedCategory, getText } = useLegalGuidance()
 
   const questionLabel = breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1].label : ""
 
   const footer = (
     <Button
-      onClick={goHome}
+      onClick={goToCategories}
       className="w-full h-14 rounded-xl text-base font-medium shadow-md hover:shadow-lg transition-all duration-200 gap-2"
       size="lg"
     >
