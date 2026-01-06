@@ -15,7 +15,7 @@ export function LegalGuidanceApp() {
   const { selectionChanged } = useTelegramHaptic()
 
   useEffect(() => {
-    initialize("http://localhost:3000")
+    initialize()
   }, [initialize])
 
   // Show back button on all screens except home
