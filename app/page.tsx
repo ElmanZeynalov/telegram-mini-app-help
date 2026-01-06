@@ -1340,7 +1340,8 @@ function FlowBuilderContent() {
 
                 {/* Questions List */}
                 <div className="text-xs text-muted-foreground mb-2">
-                  DEBUG: Total Root Questions: {flows.questions.length}.
+                  DEBUG: Raw API Data: {rawQuestionCount}.
+                  Total Root Questions: {flows.questions.length}.
                   Found for this Category: {getQuestionsAtLevel().length}.
                   Selected Category ID: {selectedCategory}
                 </div>
