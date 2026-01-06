@@ -6,20 +6,25 @@ import prisma from "@/lib/prisma"
 
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
-    try {
-        const categories = await prisma.category.findMany({
-            include: {
-                translations: true,
-            },
-            orderBy: {
-                order: "asc",
-            },
-        })
-        return NextResponse.json(categories)
-    } catch (error) {
-        return NextResponse.json({ error: "Failed to fetch categories" }, { status: 500 })
-    }
+try {
+    const categories = await prisma.category.findMany({
+        include: {
+            translations: true,
+        },
+        orderBy: {
+            order: "asc",
+        },
+    })
+
+    const formattedCategories = categories.map((c) => ({
+        ...c,
+        name: c.translations.reduce((acc, t) => ({ ...acc, [t.language]: t.name }), {}),
+    }))
+
+    return NextResponse.json(formattedCategories)
+} catch (error) {
+    return NextResponse.json({ error: "Failed to fetch categories" }, { status: 500 })
+}
 }
 
 export async function POST(request: Request) {
@@ -39,7 +44,12 @@ export async function POST(request: Request) {
             }
         })
 
-        return NextResponse.json(category)
+        const formattedCategory = {
+            ...category,
+            name: category.translations.reduce((acc, t) => ({ ...acc, [t.language]: t.name }), {}),
+        }
+
+        return NextResponse.json(formattedCategory)
     } catch (error) {
         return NextResponse.json({ error: "Failed to create category" }, { status: 500 })
     }
@@ -66,7 +76,15 @@ export async function PUT(request: Request) {
             where: { id },
             include: { translations: true }
         })
-        return NextResponse.json(category)
+
+        if (!category) return NextResponse.json({ error: "Category not found" }, { status: 404 })
+
+        const formattedCategory = {
+            ...category,
+            name: category.translations.reduce((acc, t) => ({ ...acc, [t.language]: t.name }), {}),
+        }
+
+        return NextResponse.json(formattedCategory)
     } catch (error) {
         return NextResponse.json({ error: "Failed to update category" }, { status: 500 })
     }

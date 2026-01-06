@@ -27,7 +27,16 @@ export async function GET(request: Request) {
                 order: "asc",
             },
         })
-        return NextResponse.json(questions)
+
+        // Helper to format question
+        const formatQuestion = (q: any) => ({
+            ...q,
+            question: q.translations.reduce((acc: any, t: any) => ({ ...acc, [t.language]: t.question }), {}),
+            answer: q.translations.reduce((acc: any, t: any) => ({ ...acc, [t.language]: t.answer }), {}),
+            subQuestions: q.subQuestions?.map(formatQuestion) || []
+        })
+
+        return NextResponse.json(questions.map(formatQuestion))
     } catch (error) {
         return NextResponse.json({ error: "Failed to fetch questions" }, { status: 500 })
     }
@@ -51,7 +60,14 @@ export async function POST(request: Request) {
             }
         })
 
-        return NextResponse.json(question)
+        const formattedQuestion = {
+            ...question,
+            question: question.translations.reduce((acc: any, t: any) => ({ ...acc, [t.language]: t.question }), {}),
+            answer: question.translations.reduce((acc: any, t: any) => ({ ...acc, [t.language]: t.answer }), {}),
+            subQuestions: []
+        }
+
+        return NextResponse.json(formattedQuestion)
     } catch (error) {
         return NextResponse.json({ error: "Failed to create question" }, { status: 500 })
     }
@@ -77,9 +93,19 @@ export async function PUT(request: Request) {
         // Fetch updated
         const question = await prisma.question.findUnique({
             where: { id },
-            include: { translations: true }
+            include: { translations: true, subQuestions: { include: { translations: true } } }
         })
-        return NextResponse.json(question)
+
+        if (!question) return NextResponse.json({ error: "Question not found" }, { status: 404 })
+
+        const formatQuestion = (q: any) => ({
+            ...q,
+            question: q.translations.reduce((acc: any, t: any) => ({ ...acc, [t.language]: t.question }), {}),
+            answer: q.translations.reduce((acc: any, t: any) => ({ ...acc, [t.language]: t.answer }), {}),
+            subQuestions: q.subQuestions?.map(formatQuestion) || []
+        })
+
+        return NextResponse.json(formatQuestion(question))
     } catch (error) {
         return NextResponse.json({ error: "Failed to update question" }, { status: 500 })
     }
