@@ -1,0 +1,63 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  translations CategoryTranslation[]
+  questions    Question[]
+}
+
+model CategoryTranslation {
+  id         String @id @default(uuid())
+  categoryId String
+  language   String // "az", "en", "ru"
+  name       String
+
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, language])
+}
+
+model Question {
+  id         String   @id @default(uuid())
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  // Hierarchy
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  
+  parentId   String?
+  parent     Question? @relation("SubQuestions", fields: [parentId], references: [id], onDelete: Cascade)
+  subQuestions Question[] @relation("SubQuestions")
+
+  // Content
+  translations QuestionTranslation[]
+}
+
+model QuestionTranslation {
+  id         String @id @default(uuid())
+  questionId String
+  language   String // "az", "en", "ru"
+  question   String
+  answer     String? // Markdown supported
+
+  parentQuestion Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([questionId, language])
+}
