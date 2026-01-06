@@ -1335,6 +1335,11 @@ function FlowBuilderContent() {
                 </Card>
 
                 {/* Questions List */}
+                <div className="text-xs text-muted-foreground mb-2">
+                  DEBUG: Total Root Questions: {flows.questions.length}.
+                  Found for this Category: {getQuestionsAtLevel().length}.
+                  Selected Category ID: {selectedCategory}
+                </div>
                 {currentQuestions.length === 0 ? (
                   <div className="text-center py-16 text-muted-foreground">
                     <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-30" />
