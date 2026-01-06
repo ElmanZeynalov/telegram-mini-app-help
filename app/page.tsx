@@ -159,10 +159,7 @@ function FlowBuilderContent() {
   const [deleteConfirm, setDeleteConfirm] = useState<{
     type: "category" | "question"
     id: string
-    name: string
   } | null>(null)
-
-  const [rawQuestionCount, setRawQuestionCount] = useState(0)
 
   useEffect(() => {
     const fetchData = async () => {
