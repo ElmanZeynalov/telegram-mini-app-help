@@ -170,10 +170,20 @@ function FlowBuilderContent() {
           fetch('/api/questions')
         ])
         const categories = await catsRes.json()
-        const questions = await questionsRes.json()
+        const flatQuestions = await questionsRes.json()
 
-        // Transform API data to expected frontend format if needed
-        // Assuming API returns data matching frontend interfaces
+        // Build Tree from flat list
+        const buildTree = (questions: any[], parentId: string | null = null): Question[] => {
+          return questions
+            .filter(q => q.parentId === parentId)
+            .map(q => ({
+              ...q,
+              subQuestions: buildTree(questions, q.id)
+            }))
+            .sort((a, b) => (a.order || 0) - (b.order || 0))
+        }
+
+        const questions = buildTree(flatQuestions, null)
         setFlows({ categories, questions })
       } catch (e) {
         console.error("Failed to fetch data:", e)
