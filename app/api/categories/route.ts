@@ -33,6 +33,10 @@ export async function POST(request: Request) {
         const body = await request.json()
         const { name, translations } = body // Expecting translations array or object
 
+        if (!translations || !Array.isArray(translations) || translations.length === 0) {
+            return NextResponse.json({ error: "Translations are required" }, { status: 400 })
+        }
+
         // Create category
         const category = await prisma.category.create({
             data: {

@@ -47,6 +47,10 @@ export async function POST(request: Request) {
         const body = await request.json()
         const { categoryId, parentId, translations } = body
 
+        if (!translations || !Array.isArray(translations) || translations.length === 0) {
+            return NextResponse.json({ error: "Translations are required" }, { status: 400 })
+        }
+
         const question = await prisma.question.create({
             data: {
                 categoryId,
