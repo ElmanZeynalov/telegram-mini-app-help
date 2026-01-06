@@ -175,7 +175,11 @@ function FlowBuilderContent() {
         // Build Tree from flat list
         const buildTree = (questions: any[], parentId: string | null = null): Question[] => {
           return questions
-            .filter(q => q.parentId === parentId)
+            .filter(q => {
+              // Strict check for null parentId (root) vs specific parentId
+              if (parentId === null) return !q.parentId
+              return q.parentId === parentId
+            })
             .map(q => ({
               ...q,
               subQuestions: buildTree(questions, q.id)
