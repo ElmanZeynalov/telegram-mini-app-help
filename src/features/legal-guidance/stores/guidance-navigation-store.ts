@@ -114,8 +114,8 @@ export const useGuidanceNavigationStore = create<GuidanceNavigationStore>()((set
   initialize: async (baseUrl: string = "") => {
     try {
       const [catsRes, questionsRes] = await Promise.all([
-        fetch(`${baseUrl}/api/categories`),
-        fetch(`${baseUrl}/api/questions`)
+        fetch(`${baseUrl}/api/categories`, { cache: 'no-store' }),
+        fetch(`${baseUrl}/api/questions`, { cache: 'no-store' })
       ])
 
       if (!catsRes.ok || !questionsRes.ok) throw new Error("Failed to fetch data")
