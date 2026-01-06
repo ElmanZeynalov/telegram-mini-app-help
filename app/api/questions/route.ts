@@ -83,13 +83,43 @@ export async function PUT(request: Request) {
         const { id, translations } = body
 
         if (translations) {
+            // Fetch existing translations to find a fallback title (e.g. AZ)
+            const existingQ = await prisma.question.findUnique({
+                where: { id },
+                include: { translations: true }
+            })
+
+            if (!existingQ) return NextResponse.json({ error: "Question not found" }, { status: 404 })
+
+            const fallbackTitle = existingQ.translations.find(t => t.language === 'az')?.question
+                || existingQ.translations.find(t => t.question?.length > 0)?.question
+                || "New Question"
+
             for (const t of translations) {
+                // Determine valid question text:
+                // 1. If provided in payload and not empty, use it.
+                // 2. If creating new record, MUST use fallback if provided is empty.
+                const titleForCreate = (t.question && t.question.trim().length > 0) ? t.question : fallbackTitle
+
+                // For update: If payload has empty string, do we overwrite? 
+                // If we are editing ANSWER only, frontend might send empty question or fallback.
+                // Safest: If payload question is empty/falsy, do NOT update the DB field (use undefined).
+                const titleForUpdate = (t.question && t.question.trim().length > 0) ? t.question : undefined
+
                 await prisma.questionTranslation.upsert({
                     where: {
                         questionId_language: { questionId: id, language: t.language }
                     },
-                    update: { question: t.question, answer: t.answer },
-                    create: { questionId: id, language: t.language, question: t.question, answer: t.answer }
+                    update: {
+                        answer: t.answer,
+                        ...(titleForUpdate ? { question: titleForUpdate } : {})
+                    },
+                    create: {
+                        questionId: id,
+                        language: t.language,
+                        question: titleForCreate,
+                        answer: t.answer
+                    }
                 })
             }
         }
@@ -111,6 +141,7 @@ export async function PUT(request: Request) {
 
         return NextResponse.json(formatQuestion(question))
     } catch (error) {
+        console.error("PUT Error:", error)
         return NextResponse.json({ error: "Failed to update question" }, { status: 500 })
     }
 }
