@@ -162,6 +162,8 @@ function FlowBuilderContent() {
     name: string
   } | null>(null)
 
+  const [rawQuestionCount, setRawQuestionCount] = useState(0)
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -171,6 +173,8 @@ function FlowBuilderContent() {
         ])
         const categories = await catsRes.json()
         const flatQuestions = await questionsRes.json()
+
+        setRawQuestionCount(Array.isArray(flatQuestions) ? flatQuestions.length : 0)
 
         // Pre-process: Rescue orphaned questions (parentId points to non-existent ID)
         const allQuestionIds = new Set(flatQuestions.map((q: any) => q.id))
