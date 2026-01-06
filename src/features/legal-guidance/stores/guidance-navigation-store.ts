@@ -1,9 +1,12 @@
 import { create } from "zustand"
 import type { GuidanceNavigationStore, GuidanceNavigationState, Screen, Category, Question } from "../types"
-import { mockLegalData } from "../data/mock-legal-data"
-
 const initialState: GuidanceNavigationState = {
-  data: mockLegalData,
+  data: {
+    version: "1.0.0",
+    languages: [],
+    categories: [],
+    questions: []
+  },
   screen: "home",
   selectedCategory: null,
   currentQuestions: [],
