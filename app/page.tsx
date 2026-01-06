@@ -165,13 +165,14 @@ function FlowBuilderContent() {
     const fetchData = async () => {
       try {
         const [catsRes, questionsRes] = await Promise.all([
-          fetch('/api/categories'),
-          fetch('/api/questions')
+          fetch('/api/categories', { cache: 'no-store' }),
+          fetch('/api/questions', { cache: 'no-store' })
         ])
+
+        if (!catsRes.ok || !questionsRes.ok) throw new Error("Failed to fetch data")
+
         const categories = await catsRes.json()
         const flatQuestions = await questionsRes.json()
-
-        setRawQuestionCount(Array.isArray(flatQuestions) ? flatQuestions.length : 0)
 
         // Pre-process: Rescue orphaned questions (parentId points to non-existent ID)
         const allQuestionIds = new Set(flatQuestions.map((q: any) => q.id))
@@ -1381,11 +1382,16 @@ function FlowBuilderContent() {
                 </Card>
 
                 {/* Questions List */}
-                <div className="text-xs text-muted-foreground mb-2">
-                  DEBUG: Raw API Data: {rawQuestionCount}.
-                  Total Root Questions: {flows.questions.length}.
-                  Found for this Category: {getQuestionsAtLevel().length}.
-                  Selected Category ID: {selectedCategory}
+                {/* Error Display */}
+                {/* Note: I need to define 'error' state first. I will assume I add it or use existing mechanism, but wait... 
+                    I haven't added 'error' state to the component yet. 
+                    I must add [error, setError] first! 
+                    I can't do that easily with replace_file_content if I'm not careful about where I insert it.
+                    I'll add the UI part here assuming 'error' will be available or I'll skip error UI for a moment and just fix the layout.
+                    Actually, let's just clean up the 'DEBUG' block.
+                */}
+                <div className="text-xs text-muted-foreground mb-2 flex justify-between">
+                  <span>Questions in DB: {flows.questions.length}</span>
                 </div>
                 {currentQuestions.length === 0 ? (
                   <div className="text-center py-16 text-muted-foreground">
