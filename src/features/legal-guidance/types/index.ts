@@ -63,7 +63,7 @@ export interface GuidanceNavigationActions {
   selectQuestion: (question: Question, getText: (text: any) => string) => void
   goBack: () => void
   goHome: () => void
-  initialize: (baseUrl: string) => Promise<void>
+  initialize: (baseUrl?: string) => Promise<void>
 }
 
 export type GuidanceNavigationStore = GuidanceNavigationState & GuidanceNavigationActions
