@@ -449,7 +449,11 @@ function FlowBuilderContent() {
       const currentQ = findQ(flows.questions, questionId)
       if (!currentQ) return
 
-      const currentQuestionText = currentQ.question[currentLang] || "" // Fallback or Keep existing
+      // Logic to prevent saving empty question text which would hide the question in the UI
+      // If current lang question text is missing, use AZ (default) or any other available
+      const rawCurrentLangText = currentQ.question[currentLang]
+      const fallbackText = currentQ.question['az'] || Object.values(currentQ.question).find(v => v) || ""
+      const questionTextToSave = rawCurrentLangText || fallbackText
 
       const res = await fetch('/api/questions', {
         method: 'PUT',
@@ -458,7 +462,7 @@ function FlowBuilderContent() {
           id: questionId,
           translations: [{
             language: currentLang,
-            question: currentQuestionText,
+            question: questionTextToSave,
             answer: answerForm
           }]
         })
