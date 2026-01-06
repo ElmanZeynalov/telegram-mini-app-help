@@ -6,25 +6,26 @@ import prisma from "@/lib/prisma"
 
 export const dynamic = 'force-dynamic'
 
-try {
-    const categories = await prisma.category.findMany({
-        include: {
-            translations: true,
-        },
-        orderBy: {
-            order: "asc",
-        },
-    })
+export async function GET() {
+    try {
+        const categories = await prisma.category.findMany({
+            include: {
+                translations: true,
+            },
+            orderBy: {
+                order: "asc",
+            },
+        })
 
-    const formattedCategories = categories.map((c) => ({
-        ...c,
-        name: c.translations.reduce((acc, t) => ({ ...acc, [t.language]: t.name }), {}),
-    }))
+        const formattedCategories = categories.map((c) => ({
+            ...c,
+            name: c.translations.reduce((acc, t) => ({ ...acc, [t.language]: t.name }), {}),
+        }))
 
-    return NextResponse.json(formattedCategories)
-} catch (error) {
-    return NextResponse.json({ error: "Failed to fetch categories" }, { status: 500 })
-}
+        return NextResponse.json(formattedCategories)
+    } catch (error) {
+        return NextResponse.json({ error: "Failed to fetch categories" }, { status: 500 })
+    }
 }
 
 export async function POST(request: Request) {
