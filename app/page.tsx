@@ -594,10 +594,36 @@ function FlowBuilderContent() {
     if (!translationModal) return
 
     try {
-      const translations = Object.entries(translationForms).map(([lang, text]) => ({
-        language: lang,
-        [translationModal.field === 'name' ? 'name' : (translationModal.field === 'question' ? 'question' : 'answer')]: text
-      }))
+      const translations = Object.entries(translationForms).map(([lang, text]) => {
+        const obj: any = { language: lang }
+        // If we are saving just "question text", easy.
+        // If we are saving "answer", we MUST enable "question" fallback if it's currently empty, 
+        // to avoid "invisible question" bug.
+
+        if (translationModal.field === 'name') {
+          obj.name = text
+        } else if (translationModal.field === 'question') {
+          obj.question = text
+          // Should we preserve answer? Our API (PUT) upserts. 
+          // If we only send question, existing answer should be preserved if upsert just updates fields provided?
+          // Unfortuantely my API PUT implementation:
+          // update: { question: t.question, answer: t.answer }
+          // If t.answer is undefined, update sets it to undefined (which might do nothing or might set NULL).
+          // If I want to preserve, I must fetch current first or send what I have.
+        } else if (translationModal.field === 'answer') {
+          obj.answer = text
+          // CRITICAL FIX: Ensure 'question' field is populated even if we are only editing answer
+          // otherwise the upsert might create a record with empty question text.
+          const q = findQuestionById(translationModal.id)
+          if (q) {
+            const existingQText = q.question[lang as any]
+            // Fallback: Use AZ or any existing text if current lang text is empty
+            const fallback = q.question['az'] || Object.values(q.question).find(v => v) || ""
+            obj.question = existingQText || fallback
+          }
+        }
+        return obj
+      })
 
       // Normalize because specific fields need to be passed correctly to API
       const apiBody: any = { id: translationModal.id, translations: [] }
