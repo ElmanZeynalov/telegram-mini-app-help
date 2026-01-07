@@ -130,9 +130,12 @@ function FlowBuilderContent() {
 
   const [newQuestionText, setNewQuestionText] = useState("")
   const [activePanel, setActivePanel] = useState<ActivePanel | null>(null)
-  const [answerForm, setAnswerForm] = useState("") // Renamed to answerForm
-  const [subQuestionForm, setSubQuestionForm] = useState("") // Renamed to subQuestionForm
-  const [editForm, setEditForm] = useState({ question: "", answer: "" }) // Renamed to editForm
+  const [answerForm, setAnswerForm] = useState("")
+  const [answerAttachment, setAnswerAttachment] = useState<{ url: string, name: string } | null>(null)
+  const [subQuestionForm, setSubQuestionForm] = useState("")
+  const [subQuestionAttachment, setSubQuestionAttachment] = useState<{ url: string, name: string } | null>(null)
+  const [editForm, setEditForm] = useState({ question: "", answer: "" })
+  const [editAttachment, setEditAttachment] = useState<{ url: string, name: string } | null>(null)
 
   const [translationModal, setTranslationModal] = useState<{
     type: "category" | "question"
@@ -463,7 +466,9 @@ function FlowBuilderContent() {
           translations: [{
             language: currentLang,
             question: questionTextToSave,
-            answer: answerForm
+            answer: answerForm,
+            attachmentUrl: answerAttachment?.url,
+            attachmentName: answerAttachment?.name
           }]
         })
       })
@@ -1701,7 +1706,28 @@ function FlowBuilderContent() {
                                         Manage All Languages
                                       </Button>
                                     </div>
-                                    <RichTextEditor value={answerForm} onChange={setAnswerForm} />
+                                    <RichTextEditor
+                                      value={answerForm}
+                                      onChange={setAnswerForm}
+                                      onFileSelect={async (file) => {
+                                        if (!file) return
+                                        try {
+                                          const res = await fetch(`/api/upload?filename=${file.name}`, { method: 'POST', body: file })
+                                          const blob = await res.json()
+                                          setAnswerAttachment({ url: blob.url, name: file.name })
+                                          alert(`File uploaded: ${file.name}`)
+                                        } catch (err) {
+                                          console.error(err)
+                                          alert("Upload failed")
+                                        }
+                                      }}
+                                    />
+                                    {answerAttachment && (
+                                      <div className="text-xs text-blue-600 flex items-center justify-between bg-muted/30 p-2 rounded border border-dashed border-blue-200">
+                                        <span className="flex items-center gap-2">📎 {answerAttachment.name}</span>
+                                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-red-100 hover:text-red-600 rounded-full" onClick={() => setAnswerAttachment(null)}>×</Button>
+                                      </div>
+                                    )}
                                     <div className="flex justify-end gap-2">
                                       <Button variant="ghost" size="sm" onClick={closePanel}>
                                         Cancel
@@ -1779,7 +1805,25 @@ function FlowBuilderContent() {
                                     <RichTextEditor
                                       value={editForm.answer}
                                       onChange={(v) => setEditForm({ ...editForm, answer: v })}
+                                      onFileSelect={async (file) => {
+                                        if (!file) return
+                                        try {
+                                          const res = await fetch(`/api/upload?filename=${file.name}`, { method: 'POST', body: file })
+                                          const blob = await res.json()
+                                          setEditAttachment({ url: blob.url, name: file.name })
+                                          alert(`File uploaded: ${file.name}`)
+                                        } catch (err) {
+                                          console.error(err)
+                                          alert("Upload failed")
+                                        }
+                                      }}
                                     />
+                                    {editAttachment && (
+                                      <div className="text-xs text-blue-600 flex items-center justify-between bg-muted/30 p-2 rounded border border-dashed border-blue-200">
+                                        <span className="flex items-center gap-2">📎 {editAttachment.name}</span>
+                                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-red-100 hover:text-red-600 rounded-full" onClick={() => setEditAttachment(null)}>×</Button>
+                                      </div>
+                                    )}
                                     <div className="flex justify-end gap-2">
                                       <Button variant="ghost" size="sm" onClick={closePanel}>
                                         Cancel
