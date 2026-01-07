@@ -5,7 +5,6 @@ import type React from "react"
 import { useState, useEffect, Suspense, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
@@ -1916,7 +1915,7 @@ function FlowBuilderContent() {
                         />
                         {/* File Upload Section */}
                         <div className="p-3 bg-muted/30 border border-dashed border-border rounded-lg space-y-2">
-                          <Label className="text-xs font-medium">Attachment (PDF, Word, Image)</Label>
+                          <label className="text-xs font-medium">Attachment (PDF, Word, Image)</label>
                           <div className="flex items-center gap-2">
                             <Input
                               type="file"
