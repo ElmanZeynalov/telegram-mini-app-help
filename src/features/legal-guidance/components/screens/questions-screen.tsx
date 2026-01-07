@@ -2,13 +2,20 @@
 
 import { useLegalGuidance } from "../../hooks/use-legal-guidance"
 import { NavigableContentLayout } from "../layout/navigable-content-layout"
-import { HelpCircle, ChevronRight } from "lucide-react"
+import { HelpCircle, ChevronRight, Search } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { useState } from "react"
 
 export function QuestionsScreen() {
   const { currentQuestions, currentQuestion, selectedCategory, selectQuestion, getText, t, navigationHistory } =
     useLegalGuidance()
+  const [searchQuery, setSearchQuery] = useState("")
 
   const isNested = navigationHistory.length > 0
+
+  const filteredQuestions = currentQuestions.filter((question) =>
+    getText(question.question).toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
   return (
     <NavigableContentLayout>
@@ -25,16 +32,27 @@ export function QuestionsScreen() {
           <p className="text-sm text-muted-foreground">{t("selectQuestion")}</p>
         </div>
 
+        {/* Search Input */}
+        <div className="relative">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/70" />
+          <Input
+            placeholder={t("searchQuestions")}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 h-12 bg-card border-border/60 rounded-xl focus:ring-2 focus:ring-primary/20 transition-shadow"
+          />
+        </div>
+
         <div className="space-y-2.5">
-          {currentQuestions.length === 0 ? (
+          {filteredQuestions.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
                 <HelpCircle className="h-8 w-8 text-muted-foreground/60" />
               </div>
-              <p className="text-muted-foreground">{t("noQuestions")}</p>
+              <p className="text-muted-foreground">{searchQuery ? t("noSearchResults") : t("noQuestions")}</p>
             </div>
           ) : (
-            currentQuestions.map((question, index) => (
+            filteredQuestions.map((question, index) => (
               <button
                 key={question.id}
                 onClick={() => selectQuestion(question)}

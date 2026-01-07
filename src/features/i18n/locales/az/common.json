@@ -5,5 +5,9 @@
   "selectLanguage": "Zəhmət olmasa dil seçin",
   "back": "Geri qayıt",
   "home": "Əsas səhifə",
-  "step": "Addım"
+  "step": "Addım",
+  "navigationBack": "Geriyə",
+  "navigationExit": "Çıxış",
+  "searchQuestions": "Sualları axtarın...",
+  "noSearchResults": "Nəticə tapılmadı"
 }

@@ -22,7 +22,7 @@ import { motion } from "framer-motion"
 import { XCircle } from "lucide-react"
 
 export function NavigableContentLayout({ children, footer }: NavigableContentLayoutProps) {
-  const { goBack, goHome } = useLegalGuidance()
+  const { goBack, goHome, t } = useLegalGuidance()
 
   const handleEmergencyExit = () => {
     if (typeof window !== "undefined") {
@@ -53,7 +53,7 @@ export function NavigableContentLayout({ children, footer }: NavigableContentLay
           className="flex items-center gap-1 text-muted-foreground hover:text-foreground -ml-2"
         >
           <ArrowLeft className="w-5 h-5" />
-          <span className="font-medium">Geriyə</span>
+          <span className="font-medium">{t("navigationBack")}</span>
         </Button>
 
         <Button
@@ -63,7 +63,7 @@ export function NavigableContentLayout({ children, footer }: NavigableContentLay
           className="flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white rounded-lg px-3"
         >
           <XCircle className="w-4 h-4" />
-          <span className="font-medium">Çıxış</span>
+          <span className="font-medium">{t("navigationExit")}</span>
         </Button>
       </div>
 
