@@ -33,7 +33,7 @@ export function NavigableContentLayout({ children, footer }: NavigableContentLay
   return (
     <div className="flex flex-col h-full bg-background">
       {/* Top Navigation Bar */}
-      <div className="flex items-center justify-between p-4 border-b border-border/40 bg-background/80 backdrop-blur-md sticky top-0 z-10">
+      <div className="flex items-center justify-between px-4 pb-4 pt-[calc(1rem+env(safe-area-inset-top))] border-b border-border/40 bg-background/80 backdrop-blur-md sticky top-0 z-10">
         <Button
           variant="ghost"
           size="sm"
