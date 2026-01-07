@@ -21,7 +21,7 @@ interface NavigableContentLayoutProps {
 import { motion } from "framer-motion"
 import { XCircle } from "lucide-react"
 
-export function NavigableContentLayout({ children }: NavigableContentLayoutProps) {
+export function NavigableContentLayout({ children, footer }: NavigableContentLayoutProps) {
   const { goBack } = useLegalGuidance()
 
   const handleEmergencyExit = () => {
@@ -31,35 +31,48 @@ export function NavigableContentLayout({ children }: NavigableContentLayoutProps
   }
 
   return (
-    className = "h-10 w-10 rounded-xl hover:bg-accent"
-    >
-    <ArrowLeft className="h-5 w-5" />
-          </Button >
-        </header >
-      ) : (
-    /* Spacer for Telegram's header - pushes content below native UI
-       Uses env(safe-area-inset-top) for device notch/status bar (cross-device)
-       Plus 44px for Telegram's header bar */
-    <div
-      className="flex-shrink-0"
-      style={{
-        height: 'calc(env(safe-area-inset-top, 20px) + 44px)'
-      }}
-    />
-  )
-}
+    <div className="flex flex-col h-full bg-background">
+      {/* Top Navigation Bar */}
+      <div className="flex items-center justify-between p-4 border-b border-border/40 bg-background/80 backdrop-blur-md sticky top-0 z-10">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={goBack}
+          className="flex items-center gap-1 text-muted-foreground hover:text-foreground -ml-2"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span className="font-medium">Geriyə</span>
+        </Button>
 
-{/* Main content */ }
-<main className="flex-1 overflow-y-auto">{children}</main>
+        <Button
+          variant="destructive"
+          size="sm"
+          onClick={handleEmergencyExit}
+          className="flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white rounded-lg px-3"
+        >
+          <XCircle className="w-4 h-4" />
+          <span className="font-medium">Çıxış</span>
+        </Button>
+      </div>
 
-{/* Optional footer */ }
-{
-  footer && (
-    <footer className="flex-shrink-0 p-4 bg-background/80 backdrop-blur-sm border-t border-border/30">
-      {footer}
-    </footer>
-  )
-}
-    </div >
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+        transition={{ duration: 0.3 }}
+        className="flex-1 overflow-y-auto"
+      >
+        {children}
+      </motion.div>
+
+      {/* Optional footer */}
+      {
+        footer && (
+          <footer className="flex-shrink-0 p-4 bg-background/80 backdrop-blur-sm border-t border-border/30">
+            {footer}
+          </footer>
+        )
+      }
+    </div>
   )
 }
