@@ -10,56 +10,55 @@ import { LANGUAGES } from "@/src/features/i18n/constants/languages"
 import { FeministIcon } from "@/src/assets/icons"
 
 export function HomeScreen() {
-  const { setScreen, t, locale } = useLegalGuidance()
-  const [languageSheetOpen, setLanguageSheetOpen] = useState(false)
-  const currentLang = LANGUAGES.find((l) => l.code === locale)
+  const { setScreen, t, setLocale } = useLegalGuidance()
 
-  // Language selector as a subtle footer element
-  const languageFooter = (
-    <div className="flex justify-center">
-      <button
-        onClick={() => setLanguageSheetOpen(true)}
-        className="flex items-center gap-2 px-4 py-2.5 rounded-full 
-                   bg-muted/50 hover:bg-muted active:bg-muted/80
-                   text-muted-foreground hover:text-foreground
-                   transition-colors duration-200"
-      >
-        <Globe className="h-4 w-4" />
-        <span className="text-sm font-medium">{currentLang?.nativeName}</span>
-      </button>
-    </div>
-  )
+  // Handler for language selection + navigation
+  const handleStart = (lang: "az" | "ru") => {
+    setLocale(lang)
+    setScreen("categories")
+  }
 
   return (
-    <>
-      <CenteredContentLayout footer={languageFooter}>
-        {/* App icon - Feminist Venus symbol */}
-        <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-8 shadow-sm">
-          <FeministIcon className="w-12 h-12 text-primary" />
-        </div>
+    <CenteredContentLayout>
+      {/* App icon - Feminist Venus symbol */}
+      <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-8 shadow-sm">
+        <FeministIcon className="w-12 h-12 text-primary" />
+      </div>
 
-        {/* Welcome text */}
-        <h1 className="text-2xl font-semibold text-foreground mb-3 tracking-tight">
-          {t("welcome")}
-        </h1>
+      {/* Welcome text */}
+      <h1 className="text-2xl font-semibold text-foreground mb-3 tracking-tight">
+        {t("welcome")}
+      </h1>
 
-        <p className="text-muted-foreground mb-10 max-w-xs leading-relaxed">
-          {t("welcomeSubtitle")}
-        </p>
+      <p className="text-muted-foreground mb-10 max-w-xs leading-relaxed">
+        {t("welcomeSubtitle")}
+      </p>
 
-        {/* Primary CTA */}
+      {/* Language Actions Stack */}
+      <div className="flex flex-col gap-3 w-full max-w-[280px]">
+        {/* AZ Button */}
         <Button
           size="lg"
-          onClick={() => setScreen("categories")}
-          className="px-8 h-14 text-base font-medium rounded-xl shadow-md hover:shadow-lg transition-all duration-200 gap-2"
+          onClick={() => handleStart("az")}
+          className="w-full h-14 text-base font-medium rounded-xl shadow-md hover:shadow-lg transition-all duration-200 gap-2 justify-start px-6"
         >
-          {t("startButton")}
-          <ArrowRight className="w-4 h-4" />
+          <span className="text-xl">🇦🇿</span>
+          <span className="flex-1 text-left">Başla</span>
+          <ArrowRight className="w-4 h-4 opacity-50" />
         </Button>
-      </CenteredContentLayout>
 
-      {/* Language selection sheet */}
-      <LanguageSheet open={languageSheetOpen} onOpenChange={setLanguageSheetOpen} />
-    </>
+        {/* RU Button */}
+        <Button
+          size="lg"
+          variant="secondary"
+          onClick={() => handleStart("ru")}
+          className="w-full h-14 text-base font-medium rounded-xl hover:bg-muted/80 transition-all duration-200 gap-2 justify-start px-6"
+        >
+          <span className="text-xl">🇷🇺</span>
+          <span className="flex-1 text-left">Начать</span>
+          <ArrowRight className="w-4 h-4 opacity-50" />
+        </Button>
+      </div>
+    </CenteredContentLayout>
   )
 }
