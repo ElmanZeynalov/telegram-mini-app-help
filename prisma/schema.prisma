@@ -56,6 +56,9 @@ model QuestionTranslation {
   language   String // "az", "en", "ru"
   question   String
   answer     String? // Markdown supported
+  attachmentUrl String? // URL to uploaded file (PDF, Doc, Image)
+  attachmentName String? // Display name of the file
+
 
   parentQuestion Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 

@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { Bold, Italic, List, Heading2, Link, Code, HelpCircle } from "lucide-react"
+import { Bold, Italic, List, Heading2, Link, Code, HelpCircle, Paperclip } from "lucide-react"
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip"
 
 interface RichTextEditorProps {
@@ -14,6 +14,7 @@ interface RichTextEditorProps {
   compact?: boolean
   onSubmit?: () => void
   rows?: number
+  onFileSelect?: (file: File) => void
 }
 
 export default function RichTextEditor({
@@ -23,9 +24,11 @@ export default function RichTextEditor({
   compact = false,
   onSubmit,
   rows = 4,
+  onFileSelect,
 }: RichTextEditorProps) {
   const [showHelp, setShowHelp] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const insertMarkdown = (before: string, after = "") => {
     const textarea = textareaRef.current
@@ -239,6 +242,26 @@ export default function RichTextEditor({
               <p>Inline Code</p>
             </TooltipContent>
           </Tooltip>
+
+          {onFileSelect && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="h-8 w-8 p-0"
+                  type="button"
+                >
+                  <Paperclip className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                <p>Attach File</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+
           <div className="flex-1" />
           <Button
             size="sm"
@@ -253,31 +276,47 @@ export default function RichTextEditor({
         </div>
       </TooltipProvider>
 
-      {showHelp && (
-        <div className="bg-input/30 p-3 rounded-md text-xs text-muted-foreground border border-border/50 mb-2">
-          <div className="font-semibold mb-2 text-foreground">Markdown Syntax:</div>
-          <div className="grid grid-cols-2 gap-1">
-            <div>
-              <code className="bg-input px-1 rounded">**bold**</code> for bold text
-            </div>
-            <div>
-              <code className="bg-input px-1 rounded">*italic*</code> for italic
-            </div>
-            <div>
-              <code className="bg-input px-1 rounded">## Heading</code> for headings
-            </div>
-            <div>
-              <code className="bg-input px-1 rounded">- Item</code> for bullet lists
-            </div>
-            <div>
-              <code className="bg-input px-1 rounded">[Text](url)</code> for links
-            </div>
-            <div>
-              <code className="bg-input px-1 rounded">`code`</code> for inline code
+      <input
+        type="file"
+        ref={fileInputRef}
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0]
+          if (file && onFileSelect) {
+            onFileSelect(file)
+          }
+          // Reset value so same file can be selected again
+          if (e.target) e.target.value = ""
+        }}
+      />
+
+      {
+        showHelp && (
+          <div className="bg-input/30 p-3 rounded-md text-xs text-muted-foreground border border-border/50 mb-2">
+            <div className="font-semibold mb-2 text-foreground">Markdown Syntax:</div>
+            <div className="grid grid-cols-2 gap-1">
+              <div>
+                <code className="bg-input px-1 rounded">**bold**</code> for bold text
+              </div>
+              <div>
+                <code className="bg-input px-1 rounded">*italic*</code> for italic
+              </div>
+              <div>
+                <code className="bg-input px-1 rounded">## Heading</code> for headings
+              </div>
+              <div>
+                <code className="bg-input px-1 rounded">- Item</code> for bullet lists
+              </div>
+              <div>
+                <code className="bg-input px-1 rounded">[Text](url)</code> for links
+              </div>
+              <div>
+                <code className="bg-input px-1 rounded">`code`</code> for inline code
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       <textarea
         ref={textareaRef}
@@ -289,6 +328,6 @@ export default function RichTextEditor({
         }
         className="w-full h-32 px-3 py-2 bg-input border border-t-0 border-border rounded-b-md text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary"
       />
-    </div>
+    </div >
   )
 }

@@ -10,7 +10,7 @@ import { AnswerFeedback } from "../feedback/answer-feedback"
 import { useTelegram } from "@/src/features/telegram/hooks/use-telegram"
 
 export function AnswerScreen() {
-  const { currentAnswer, breadcrumbs, goToCategories, t, selectedCategory, getText } = useLegalGuidance()
+  const { currentAnswer, currentAttachment, breadcrumbs, goToCategories, t, selectedCategory, getText } = useLegalGuidance()
   const { webApp } = useTelegram()
 
   const questionLabel = breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1].label : ""
@@ -42,7 +42,7 @@ export function AnswerScreen() {
         {currentAnswer ? (
           <>
             {/* Answer card */}
-            <div className="bg-card rounded-2xl border border-border/40 shadow-sm p-5">
+            <div className="bg-card rounded-2xl border border-border/40 shadow-sm p-5 space-y-4">
               <div className="prose-answer text-card-foreground">
                 <ReactMarkdown
                   components={{
@@ -78,6 +78,31 @@ export function AnswerScreen() {
                   {currentAnswer}
                 </ReactMarkdown>
               </div>
+
+              {/* Attachment Download Button */}
+              {currentAttachment && (
+                <div className="pt-2 border-t border-border/50">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start gap-2 h-auto py-3 px-4 border-dashed"
+                    onClick={() => {
+                      if (webApp) {
+                        webApp.openLink(currentAttachment.url)
+                      } else {
+                        window.open(currentAttachment.url, "_blank")
+                      }
+                    }}
+                  >
+                    <div className="bg-primary/10 p-2 rounded-md">
+                      <span className="text-xl">📄</span>
+                    </div>
+                    <div className="text-left flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate text-foreground">{currentAttachment.name}</p>
+                      <p className="text-xs text-muted-foreground">{t("downloadFile")}</p>
+                    </div>
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* Feedback section - appears after the answer */}

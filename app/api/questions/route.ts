@@ -33,6 +33,10 @@ export async function GET(request: Request) {
             ...q,
             question: q.translations.reduce((acc: any, t: any) => ({ ...acc, [t.language]: t.question }), {}),
             answer: q.translations.reduce((acc: any, t: any) => ({ ...acc, [t.language]: t.answer }), {}),
+            attachments: q.translations.reduce((acc: any, t: any) => ({
+                ...acc,
+                [t.language]: t.attachmentUrl ? { url: t.attachmentUrl, name: t.attachmentName } : null
+            }), {}),
             subQuestions: q.subQuestions?.map(formatQuestion) || []
         })
 
@@ -112,13 +116,17 @@ export async function PUT(request: Request) {
                     },
                     update: {
                         answer: t.answer,
+                        ...(t.attachmentUrl !== undefined ? { attachmentUrl: t.attachmentUrl } : {}),
+                        ...(t.attachmentName !== undefined ? { attachmentName: t.attachmentName } : {}),
                         ...(titleForUpdate ? { question: titleForUpdate } : {})
                     },
                     create: {
                         questionId: id,
                         language: t.language,
                         question: titleForCreate,
-                        answer: t.answer
+                        answer: t.answer,
+                        attachmentUrl: t.attachmentUrl,
+                        attachmentName: t.attachmentName
                     }
                 })
             }
@@ -136,6 +144,10 @@ export async function PUT(request: Request) {
             ...q,
             question: q.translations.reduce((acc: any, t: any) => ({ ...acc, [t.language]: t.question }), {}),
             answer: q.translations.reduce((acc: any, t: any) => ({ ...acc, [t.language]: t.answer }), {}),
+            attachments: q.translations.reduce((acc: any, t: any) => ({
+                ...acc,
+                [t.language]: t.attachmentUrl ? { url: t.attachmentUrl, name: t.attachmentName } : null
+            }), {}),
             subQuestions: q.subQuestions?.map(formatQuestion) || []
         })
 

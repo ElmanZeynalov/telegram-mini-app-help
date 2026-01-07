@@ -1,5 +1,6 @@
 import { create } from "zustand"
 import type { GuidanceNavigationStore, GuidanceNavigationState, Screen, Category, Question } from "../types"
+import { useLocaleStore } from "@/src/features/i18n/stores/locale-store"
 const initialState: GuidanceNavigationState = {
   data: {
     version: "1.0.0",
@@ -12,6 +13,7 @@ const initialState: GuidanceNavigationState = {
   currentQuestions: [],
   currentQuestion: null,
   currentAnswer: null,
+  currentAttachment: null,
   breadcrumbs: [],
   navigationHistory: [],
 }
@@ -49,6 +51,12 @@ export const useGuidanceNavigationStore = create<GuidanceNavigationStore>()((set
     if (question.answer && (!question.subQuestions || question.subQuestions.length === 0)) {
       set({
         currentAnswer: getText(question.answer),
+        currentAttachment: (() => {
+          const { locale } = useLocaleStore.getState()
+          const attachments = question.attachments
+          if (!attachments) return null
+          return attachments[locale] || attachments.az || null
+        })(),
         breadcrumbs: newBreadcrumbs,
         navigationHistory: newHistory,
         screen: "answer",
@@ -135,6 +143,10 @@ export const useGuidanceNavigationStore = create<GuidanceNavigationStore>()((set
             name: q.translations ? q.translations.reduce((acc: any, t: any) => ({ ...acc, [t.language]: t.name }), {}) : q.name,
             question: q.translations ? q.translations.reduce((acc: any, t: any) => ({ ...acc, [t.language]: t.question }), {}) : q.question,
             answer: q.translations ? q.translations.reduce((acc: any, t: any) => ({ ...acc, [t.language]: t.answer }), {}) : q.answer,
+            attachments: q.translations ? q.translations.reduce((acc: any, t: any) => ({
+              ...acc,
+              [t.language]: t.attachmentUrl ? { url: t.attachmentUrl, name: t.attachmentName } : null
+            }), {}) : {},
             subQuestions: buildTree(questions, q.id)
           }))
           .sort((a, b) => (a.order || 0) - (b.order || 0))

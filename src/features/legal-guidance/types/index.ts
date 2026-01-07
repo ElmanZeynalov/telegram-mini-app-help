@@ -19,6 +19,7 @@ export interface Question {
   categoryId?: string
   question: TranslatedString
   answer?: TranslatedString
+  attachments?: Record<string, { url: string; name: string } | null>
   keywords?: string[]
   subQuestions?: Question[]
   createdAt: string
@@ -53,6 +54,7 @@ export interface GuidanceNavigationState {
   currentQuestions: Question[]
   currentQuestion: Question | null
   currentAnswer: string | null
+  currentAttachment: { url: string; name: string } | null
   breadcrumbs: BreadcrumbItem[]
   navigationHistory: NavigationHistoryItem[]
 }

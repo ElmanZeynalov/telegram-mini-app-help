@@ -612,6 +612,15 @@ function FlowBuilderContent() {
           // If I want to preserve, I must fetch current first or send what I have.
         } else if (translationModal.field === 'answer') {
           obj.answer = text
+
+          // Check for attachments in the form state (handled by the file input onChange)
+          if (translationForms[`${lang}_attachmentUrl`]) {
+            obj.attachmentUrl = translationForms[`${lang}_attachmentUrl`]
+          }
+          if (translationForms[`${lang}_attachmentName`]) {
+            obj.attachmentName = translationForms[`${lang}_attachmentName`]
+          }
+
           // CRITICAL FIX: Ensure 'question' field is populated even if we are only editing answer
           // otherwise the upsert might create a record with empty question text.
           const q = findQuestionById(translationModal.id)
@@ -1828,12 +1837,53 @@ function FlowBuilderContent() {
                       )}
                     </div>
                     {translationModal?.field === "answer" ? (
-                      <Textarea
-                        placeholder={`Enter ${lang.name} translation...`}
-                        value={value}
-                        onChange={(e) => setTranslationForms({ ...translationForms, [lang.code]: e.target.value })}
-                        className="min-h-[100px]"
-                      />
+                      <div className="space-y-3">
+                        <Textarea
+                          placeholder={`Enter ${lang.name} translation...`}
+                          value={value}
+                          onChange={(e) => setTranslationForms({ ...translationForms, [lang.code]: e.target.value })}
+                          className="min-h-[100px]"
+                        />
+                        {/* File Upload Section */}
+                        <div className="p-3 bg-muted/30 border border-dashed border-border rounded-lg space-y-2">
+                          <Label className="text-xs font-medium">Attachment (PDF, Word, Image)</Label>
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="file"
+                              className="text-xs h-9 cursor-pointer"
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0]
+                                if (!file) return
+
+                                try {
+                                  const res = await fetch(`/api/upload?filename=${file.name}`, {
+                                    method: 'POST',
+                                    body: file,
+                                  })
+                                  const blob = await res.json()
+
+                                  setTranslationForms(prev => ({
+                                    ...prev,
+                                    [`${lang.code}_attachmentUrl`]: blob.url,
+                                    [`${lang.code}_attachmentName`]: file.name
+                                  }))
+
+                                  alert(`File uploaded: ${file.name}`)
+                                } catch (err) {
+                                  console.error(err)
+                                  alert("Upload failed")
+                                }
+                              }}
+                            />
+                          </div>
+                          {/* Show if file exists */}
+                          {(translationForms[`${lang.code}_attachmentName`] || (translationModal.id && findQuestionById(translationModal.id)?.translations?.find(t => t.language === lang.code)?.attachmentName)) && (
+                            <div className="text-xs text-blue-600 flex items-center gap-1">
+                              <span>📎 {translationForms[`${lang.code}_attachmentName`] || findQuestionById(translationModal.id)?.translations?.find(t => t.language === lang.code)?.attachmentName}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     ) : (
                       <Input
                         placeholder={`Enter ${lang.name} translation...`}
