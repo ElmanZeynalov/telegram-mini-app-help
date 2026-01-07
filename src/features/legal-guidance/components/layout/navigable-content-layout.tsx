@@ -22,18 +22,30 @@ import { motion } from "framer-motion"
 import { XCircle } from "lucide-react"
 
 export function NavigableContentLayout({ children, footer }: NavigableContentLayoutProps) {
-  const { goBack } = useLegalGuidance()
+  const { goBack, goHome } = useLegalGuidance()
 
   const handleEmergencyExit = () => {
-    if (typeof window !== "undefined" && window.Telegram?.WebApp) {
-      window.Telegram.WebApp.close()
+    if (typeof window !== "undefined") {
+      // If inside Telegram
+      if (window.Telegram?.WebApp?.initData) {
+        window.Telegram.WebApp.close()
+      } else {
+        // If PWA / Browser
+        try {
+          window.close()
+        } catch (e) {
+          console.log("Cannot close window", e)
+        }
+        // Fallback: Return to main language screen (Restart app)
+        goHome()
+      }
     }
   }
 
   return (
     <div className="flex flex-col h-full bg-background">
-      {/* Top Navigation Bar */}
-      <div className="flex items-center justify-between px-4 pb-4 pt-[calc(1rem+env(safe-area-inset-top))] border-b border-border/40 bg-background/80 backdrop-blur-md sticky top-0 z-10">
+      {/* Top Navigation Bar with increased top padding to avoid Telegram UI overlap */}
+      <div className="flex items-center justify-between px-4 pb-3 pt-[calc(3.5rem+env(safe-area-inset-top))] border-b border-border/40 bg-background/80 backdrop-blur-md sticky top-0 z-10">
         <Button
           variant="ghost"
           size="sm"
