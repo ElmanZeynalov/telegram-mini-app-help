@@ -15,6 +15,10 @@ export interface TelegramContextValue {
    * Error that occurred during initialization, if any
    */
   error: Error | null
+  /**
+   * The raw WebApp object from the Telegram SDK
+   */
+  webApp?: Window["Telegram"]["WebApp"]
 }
 
 export const TelegramContext = createContext<TelegramContextValue | null>(null)

@@ -42,7 +42,7 @@ function checkIsTelegramEnvironment(): boolean {
   // Check for launch params in URL
   const hasHashParams = window.location.hash.includes("tgWebAppData")
   const hasQueryParams = new URLSearchParams(window.location.search).has("tgWebAppData")
-  
+
   if (hasHashParams || hasQueryParams) {
     return true
   }
@@ -68,7 +68,7 @@ function expandImmediately() {
   try {
     webApp.ready()
     webApp.expand()
-    
+
     if (typeof webApp.disableVerticalSwipes === "function") {
       webApp.disableVerticalSwipes()
     }
@@ -201,6 +201,7 @@ export function TelegramProvider({
       isInitialized,
       isTelegram,
       error,
+      webApp: typeof window !== "undefined" ? window.Telegram?.WebApp : undefined,
     }),
     [isInitialized, isTelegram, error]
   )
