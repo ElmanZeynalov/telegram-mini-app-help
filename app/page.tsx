@@ -55,6 +55,7 @@ interface Question {
   categoryId?: string
   question: TranslatedString
   answer?: TranslatedString
+  attachments?: Record<string, { url: string; name: string } | null>
   keywords?: string[]
   subQuestions?: Question[]
   order: number
