@@ -476,12 +476,22 @@ function FlowBuilderContent() {
       if (!res.ok) throw new Error("Failed to save answer")
       const updatedQ = await res.json()
 
+      // CRITICAL FIX: The API returns the full updated question object with 'attachments'.
+      // We must map it back to the Question type used in frontend if structure differs, 
+      // but here we can just merge.
+      // And we need to ensure the local state reflects the new attachment.
+
       const updateQuestionsRecursive = (questions: Question[]): Question[] => {
         return questions.map((q) => {
           if (q.id === questionId) {
-            // Merge the answer. 
-            // Update local state map from API response or manually
-            return { ...q, answer: { ...(q.answer || {}), [currentLang]: answerForm } }
+            // We can return the full updated object from API to ensure we have fresh data
+            // But we need to preserve subQuestions if API didn't return them or returned empty
+            return {
+              ...q,
+              ...updatedQ,
+              // Restore subquestions from current state if needed, assuming API logic
+              subQuestions: q.subQuestions
+            }
           }
           if (q.subQuestions) {
             return { ...q, subQuestions: updateQuestionsRecursive(q.subQuestions) }
@@ -490,8 +500,11 @@ function FlowBuilderContent() {
         })
       }
       setFlows({ ...flows, questions: updateQuestionsRecursive(flows.questions) })
+
+      // Cleanup
       setActivePanel(null)
       setAnswerForm("")
+      setAnswerAttachment(null)
     } catch (e) {
       console.error("Failed to save answer", e)
     }
