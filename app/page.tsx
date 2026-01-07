@@ -1921,51 +1921,49 @@ function FlowBuilderContent() {
                     </div>
                     {translationModal?.field === "answer" ? (
                       <div className="space-y-3">
-                        <Textarea
-                          placeholder={`Enter ${lang.name} translation...`}
+                        <RichTextEditor
                           value={value}
-                          onChange={(e) => setTranslationForms({ ...translationForms, [lang.code]: e.target.value })}
-                          className="min-h-[100px]"
+                          onChange={(val) => setTranslationForms({ ...translationForms, [lang.code]: val })}
+                          placeholder={`Enter ${lang.name} translation...`}
+                          onFileSelect={async (file) => {
+                            if (!file) return
+                            try {
+                              const res = await fetch(`/api/upload?filename=${file.name}`, { method: 'POST', body: file })
+                              const blob = await res.json()
+                              setTranslationForms(prev => ({
+                                ...prev,
+                                [`${lang.code}_attachmentUrl`]: blob.url,
+                                [`${lang.code}_attachmentName`]: file.name
+                              }))
+                              alert(`File uploaded: ${file.name}`)
+                            } catch (err) {
+                              console.error(err)
+                              alert("Upload failed")
+                            }
+                          }}
                         />
-                        {/* File Upload Section */}
-                        <div className="p-3 bg-muted/30 border border-dashed border-border rounded-lg space-y-2">
-                          <label className="text-xs font-medium">Attachment (PDF, Word, Image)</label>
-                          <div className="flex items-center gap-2">
-                            <Input
-                              type="file"
-                              className="text-xs h-9 cursor-pointer"
-                              onChange={async (e) => {
-                                const file = e.target.files?.[0]
-                                if (!file) return
-
-                                try {
-                                  const res = await fetch(`/api/upload?filename=${file.name}`, {
-                                    method: 'POST',
-                                    body: file,
-                                  })
-                                  const blob = await res.json()
-
-                                  setTranslationForms(prev => ({
-                                    ...prev,
-                                    [`${lang.code}_attachmentUrl`]: blob.url,
-                                    [`${lang.code}_attachmentName`]: file.name
-                                  }))
-
-                                  alert(`File uploaded: ${file.name}`)
-                                } catch (err) {
-                                  console.error(err)
-                                  alert("Upload failed")
-                                }
+                        {/* Show if file exists */}
+                        {(translationForms[`${lang.code}_attachmentName`] || (translationModal.id && findQuestionById(translationModal.id)?.translations?.find(t => t.language === lang.code)?.attachmentName)) && (
+                          <div className="mt-1 text-xs text-blue-600 flex items-center justify-between bg-muted/30 p-2 rounded border border-dashed border-blue-200">
+                            <span className="flex items-center gap-2">
+                              📎 {translationForms[`${lang.code}_attachmentName`] || findQuestionById(translationModal.id)?.translations?.find(t => t.language === lang.code)?.attachmentName}
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 hover:bg-red-100 hover:text-red-600 rounded-full"
+                              onClick={() => {
+                                setTranslationForms(prev => ({
+                                  ...prev,
+                                  [`${lang.code}_attachmentUrl`]: "", // Mark for deletion
+                                  [`${lang.code}_attachmentName`]: ""
+                                }))
                               }}
-                            />
+                            >
+                              ×
+                            </Button>
                           </div>
-                          {/* Show if file exists */}
-                          {(translationForms[`${lang.code}_attachmentName`] || (translationModal.id && findQuestionById(translationModal.id)?.translations?.find(t => t.language === lang.code)?.attachmentName)) && (
-                            <div className="text-xs text-blue-600 flex items-center gap-1">
-                              <span>📎 {translationForms[`${lang.code}_attachmentName`] || findQuestionById(translationModal.id)?.translations?.find(t => t.language === lang.code)?.attachmentName}</span>
-                            </div>
-                          )}
-                        </div>
+                        )}
                       </div>
                     ) : (
                       <Input
