@@ -3,10 +3,10 @@ import type { LocaleStore } from "../types"
 import type { Locale, TranslatedString } from "@/src/types"
 import { translations } from "../locales"
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from "@/src/config/constants"
-import { 
-  initDataUser, 
+import {
+  initDataUser,
   cloudStorage,
-  isCloudStorageSupported 
+  isCloudStorageSupported
 } from "@telegram-apps/sdk-react"
 
 const CLOUD_STORAGE_KEY = "user_locale"
@@ -18,7 +18,7 @@ const CLOUD_STORAGE_KEY = "user_locale"
  */
 function getPrimaryLanguage(languageTag: string): string {
   try {
-    // Intl.Locale properly parses BCP 47 language tags
+    // Intl.Locale properly parses BCP 2 language tags
     const locale = new Intl.Locale(languageTag)
     return locale.language.toLowerCase()
   } catch {
@@ -125,7 +125,7 @@ export const useLocaleStore = create<LocaleStore>()((set, get) => ({
       // Try SDK's initDataUser signal
       const user = initDataUser()
       console.log("[Locale] SDK initDataUser:", user)
-      
+
       if (user?.language_code) {
         const telegramLocale = getSupportedLocale(user.language_code)
         console.log("[Locale] Detected language:", user.language_code, "-> Mapped to:", telegramLocale)
@@ -133,11 +133,11 @@ export const useLocaleStore = create<LocaleStore>()((set, get) => ({
         saveToCloudStorage(telegramLocale)
         return
       }
-      
+
       // Fallback: Try native Telegram WebApp API
       const webAppUser = window.Telegram?.WebApp?.initDataUnsafe?.user as { language_code?: string } | undefined
       console.log("[Locale] WebApp initDataUnsafe.user:", webAppUser)
-      
+
       if (webAppUser?.language_code) {
         const telegramLocale = getSupportedLocale(webAppUser.language_code)
         console.log("[Locale] Detected from WebApp:", webAppUser.language_code, "-> Mapped to:", telegramLocale)

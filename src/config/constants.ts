@@ -7,4 +7,4 @@ export const APP_CONFIG = {
 } as const
 
 export const DEFAULT_LOCALE: Locale = "az"
-export const SUPPORTED_LOCALES: Locale[] = ["az", "ru", "en"]
+export const SUPPORTED_LOCALES: Locale[] = ["az", "ru"]

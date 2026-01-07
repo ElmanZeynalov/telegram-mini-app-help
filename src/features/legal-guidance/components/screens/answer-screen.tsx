@@ -41,7 +41,34 @@ export function AnswerScreen() {
             {/* Answer card */}
             <div className="bg-card rounded-2xl border border-border/40 shadow-sm p-5">
               <div className="prose-answer text-card-foreground">
-                <ReactMarkdown>{currentAnswer}</ReactMarkdown>
+                <ReactMarkdown
+                  components={{
+                    a: ({ node, href, children, ...props }) => {
+                      const handleClick = (e: React.MouseEvent) => {
+                        e.preventDefault()
+                        if (href) {
+                          if (typeof window !== "undefined" && window.Telegram?.WebApp) {
+                            window.Telegram.WebApp.openLink(href, { try_instant_view: true })
+                          } else {
+                            window.open(href, "_blank", "noreferrer")
+                          }
+                        }
+                      }
+                      return (
+                        <a
+                          href={href}
+                          onClick={handleClick}
+                          className="text-blue-600 dark:text-blue-400 font-medium hover:underline break-words"
+                          {...props}
+                        >
+                          {children}
+                        </a>
+                      )
+                    }
+                  }}
+                >
+                  {currentAnswer}
+                </ReactMarkdown>
               </div>
             </div>
 
