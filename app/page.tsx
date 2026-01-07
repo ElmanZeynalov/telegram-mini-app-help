@@ -527,7 +527,13 @@ function FlowBuilderContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id: questionId,
-          translations: [{ language: currentLang, question: editForm.question.trim(), answer: editForm.answer }]
+          translations: [{
+            language: currentLang,
+            question: editForm.question.trim(),
+            answer: editForm.answer,
+            attachmentUrl: editAttachment?.url,
+            attachmentName: editAttachment?.name
+          }]
         })
       })
       if (!res.ok) throw new Error("Failed to update")
