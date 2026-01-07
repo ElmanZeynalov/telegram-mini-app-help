@@ -7,8 +7,11 @@ import { FileQuestion, RotateCcw } from "lucide-react"
 import ReactMarkdown from "react-markdown"
 import { AnswerFeedback } from "../feedback/answer-feedback"
 
+import { useTelegram } from "@/src/features/telegram/hooks/use-telegram"
+
 export function AnswerScreen() {
   const { currentAnswer, breadcrumbs, goToCategories, t, selectedCategory, getText } = useLegalGuidance()
+  const { webApp } = useTelegram()
 
   const questionLabel = breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1].label : ""
 
@@ -46,23 +49,28 @@ export function AnswerScreen() {
                     a: ({ node, href, children, ...props }) => {
                       const handleClick = (e: React.MouseEvent) => {
                         e.preventDefault()
+                        e.stopPropagation()
+
                         if (href) {
-                          if (typeof window !== "undefined" && window.Telegram?.WebApp) {
-                            window.Telegram.WebApp.openLink(href, { try_instant_view: true })
+                          if (webApp) {
+                            webApp.openLink(href, { try_instant_view: true })
                           } else {
+                            // Fallback for browser testing
                             window.open(href, "_blank", "noreferrer")
                           }
                         }
                       }
+
+                      // We render a span instead of 'a' to guarantee no default browser behavior
+                      // But style it exactly like a link
                       return (
-                        <a
-                          href={href}
+                        <span
                           onClick={handleClick}
-                          className="text-blue-600 dark:text-blue-400 font-medium hover:underline break-words"
+                          className="text-blue-600 dark:text-blue-400 font-medium hover:underline break-words cursor-pointer"
                           {...props}
                         >
                           {children}
-                        </a>
+                        </span>
                       )
                     }
                   }}
