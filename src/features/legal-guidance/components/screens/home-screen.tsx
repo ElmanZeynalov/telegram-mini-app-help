@@ -1,12 +1,9 @@
 "use client"
 
-import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { useLegalGuidance } from "../../hooks/use-legal-guidance"
-import { ArrowRight, Globe } from "lucide-react"
+import { ArrowRight } from "lucide-react"
 import { CenteredContentLayout } from "../layout/centered-content-layout"
-import { LanguageSheet } from "@/src/features/i18n/components/language-sheet"
-import { LANGUAGES } from "@/src/features/i18n/constants/languages"
 import { FeministIcon } from "@/src/assets/icons"
 
 export function HomeScreen() {
