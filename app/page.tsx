@@ -481,19 +481,25 @@ function FlowBuilderContent() {
       const fallbackText = currentQ.question['az'] || Object.values(currentQ.question).find(v => v) || ""
       const questionTextToSave = rawCurrentLangText || fallbackText
 
+      const payload = {
+        id: questionId,
+        translations: [{
+          language: currentLang,
+          question: questionTextToSave,
+          answer: answerForm,
+          attachmentUrl: answerAttachment ? answerAttachment.url : null,
+          attachmentName: answerAttachment ? answerAttachment.name : null
+        }]
+      }
+
+      // Debug Alert - temporary to verify data
+      // eslint-disable-next-line no-alert
+      alert(`Saving Attachment: ${answerAttachment?.url || 'NONE'}`)
+
       const res = await fetch('/api/questions', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: questionId,
-          translations: [{
-            language: currentLang,
-            question: questionTextToSave,
-            answer: answerForm,
-            attachmentUrl: answerAttachment ? answerAttachment.url : null,
-            attachmentName: answerAttachment ? answerAttachment.name : null
-          }]
-        })
+        body: JSON.stringify(payload)
       })
 
       if (!res.ok) throw new Error("Failed to save answer")

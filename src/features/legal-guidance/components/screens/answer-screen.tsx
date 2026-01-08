@@ -15,6 +15,9 @@ export function AnswerScreen() {
 
   const questionLabel = breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1].label : ""
 
+  // Debug log
+  console.log("Current Answer Screen State:", { currentAnswer: !!currentAnswer, hasAttachment: !!currentAttachment, attachment: currentAttachment })
+
   const footer = (
     <Button
       onClick={goToCategories}
@@ -81,10 +84,10 @@ export function AnswerScreen() {
 
               {/* Attachment Download Button */}
               {currentAttachment && (
-                <div className="pt-2 border-t border-border/50">
+                <div className="pt-3 border-t border-border/50">
                   <Button
-                    variant="outline"
-                    className="w-full justify-start gap-2 h-auto py-3 px-4 border-dashed"
+                    variant="secondary"
+                    className="w-full justify-start gap-3 h-auto py-3 px-4 bg-primary/10 hover:bg-primary/20 border border-primary/20 transition-all"
                     onClick={() => {
                       if (webApp) {
                         webApp.openLink(currentAttachment.url)
@@ -93,8 +96,8 @@ export function AnswerScreen() {
                       }
                     }}
                   >
-                    <div className="bg-primary/10 p-2 rounded-md">
-                      <span className="text-xl">📄</span>
+                    <div className="bg-background p-2 rounded-lg shadow-sm">
+                      <span className="text-xl">📎</span>
                     </div>
                     <div className="text-left flex-1 min-w-0">
                       <p className="font-medium text-sm truncate text-foreground">{currentAttachment.name}</p>

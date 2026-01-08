@@ -87,7 +87,7 @@ export async function PUT(request: Request) {
         const { id, translations } = body
 
         if (translations) {
-            console.log("PUT /api/questions payload translations:", JSON.stringify(translations, null, 2))
+            console.log("PUT Payload Translations:", JSON.stringify(translations, null, 2))
             // Fetch existing translations to find a fallback title (e.g. AZ)
             const existingQ = await prisma.question.findUnique({
                 where: { id },
