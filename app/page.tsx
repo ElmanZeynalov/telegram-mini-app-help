@@ -492,10 +492,6 @@ function FlowBuilderContent() {
         }]
       }
 
-      // Debug Alert - temporary to verify data
-      // eslint-disable-next-line no-alert
-      alert(`Saving Attachment: ${answerAttachment?.url || 'NONE'}`)
-
       const res = await fetch('/api/questions', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -570,13 +566,7 @@ function FlowBuilderContent() {
       const updateQuestionsRecursive = (questions: Question[]): Question[] => {
         return questions.map((q) => {
           if (q.id === questionId) {
-            // Merge updated fields but keep subQuestions from local state if not returned populated deeply (API returns subquestions but maybe not deep enough or we want to preserve UI state)
-            // Actually API returns full object. Let's merge carefully.
-            return {
-              ...q,
-              ...updatedQ,
-              subQuestions: q.subQuestions // Keep existing subquestions reference if API doesn't return them or if we want to avoid re-render issues strictly locally
-            }
+            return { ...q, ...updatedQ, subQuestions: q.subQuestions }
           }
           if (q.subQuestions) {
             return { ...q, subQuestions: updateQuestionsRecursive(q.subQuestions) }
@@ -589,6 +579,65 @@ function FlowBuilderContent() {
       setEditForm({ question: "", answer: "" })
     } catch (e) {
       console.error("Failed to update question", e)
+    }
+  }
+
+  const deleteAttachment = async (questionId: string, url: string) => {
+    if (!confirm("Are you sure you want to delete this file? This cannot be undone.")) return
+
+    try {
+      // 1. Delete from Vercel Blob
+      const deleteRes = await fetch(`/api/upload?url=${encodeURIComponent(url)}`, { method: 'DELETE' })
+      if (!deleteRes.ok) throw new Error("Failed to delete file from storage")
+
+      // 2. Update DB to remove reference
+      // We need to fetch current question state first to preserving other fields? 
+      // Actually we can just update the current lang attachment to null.
+
+      // We need to be careful not to overwrite the answer text if we don't have it handy?
+      // We DO NOT have the answer text handy in this scope without finding the question.
+      const q = findQuestionById(questionId)
+      if (!q) return
+
+      const currentAnswerText = q.answer?.[currentLang] || ""
+      const currentQuestionText = q.question[currentLang] || Object.values(q.question)[0] || ""
+
+      const updateRes = await fetch('/api/questions', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: questionId,
+          translations: [{
+            language: currentLang,
+            question: currentQuestionText,
+            answer: currentAnswerText,
+            attachmentUrl: null,
+            attachmentName: null
+          }]
+        })
+      })
+
+      if (!updateRes.ok) throw new Error("Failed to update question")
+      const updatedQ = await updateRes.json()
+
+      // 3. Update Local State
+      const updateQuestionsRecursive = (questions: Question[]): Question[] => {
+        return questions.map((q) => {
+          if (q.id === questionId) {
+            return { ...q, ...updatedQ, subQuestions: q.subQuestions }
+          }
+          if (q.subQuestions) {
+            return { ...q, subQuestions: updateQuestionsRecursive(q.subQuestions) }
+          }
+          return q
+        })
+      }
+      setFlows(prev => ({ ...prev, questions: updateQuestionsRecursive(prev.questions) }))
+      toast.success("File deleted successfully")
+
+    } catch (e) {
+      console.error("Failed to delete attachment", e)
+      toast.error("Failed to delete attachment")
     }
   }
 
@@ -1677,6 +1726,28 @@ function FlowBuilderContent() {
                                 <div className="text-sm text-foreground line-clamp-2">
                                   <MarkdownPreview content={currentAnswer} />
                                 </div>
+                                {/* Attachment Indicator in Read-Only View */}
+                                {question.attachments?.[currentLang] && (
+                                  <div className="mt-2 flex items-center justify-between bg-background border border-border/50 rounded px-2 py-1.5 w-full max-w-xs">
+                                    <div className="flex items-center gap-2 overflow-hidden">
+                                      <span className="text-lg">📎</span>
+                                      <span className="text-xs font-medium truncate">{question.attachments[currentLang]?.name}</span>
+                                    </div>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-6 w-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10 -mr-1"
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        if (question.attachments?.[currentLang]?.url) {
+                                          deleteAttachment(question.id, question.attachments[currentLang]!.url)
+                                        }
+                                      }}
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </Button>
+                                  </div>
+                                )}
                               </div>
                             )}
 

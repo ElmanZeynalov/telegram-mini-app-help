@@ -15,9 +15,6 @@ export function AnswerScreen() {
 
   const questionLabel = breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1].label : ""
 
-  // Debug log
-  console.log("Current Answer Screen State:", { currentAnswer: !!currentAnswer, hasAttachment: !!currentAttachment, attachment: currentAttachment })
-
   const footer = (
     <Button
       onClick={goToCategories}
@@ -82,28 +79,65 @@ export function AnswerScreen() {
                 </ReactMarkdown>
               </div>
 
-              {/* Attachment Download Button */}
+              {/* Attachment Section */}
               {currentAttachment && (
                 <div className="pt-3 border-t border-border/50">
-                  <Button
-                    variant="secondary"
-                    className="w-full justify-start gap-3 h-auto py-3 px-4 bg-primary/10 hover:bg-primary/20 border border-primary/20 transition-all"
-                    onClick={() => {
-                      if (webApp) {
-                        webApp.openLink(currentAttachment.url)
-                      } else {
-                        window.open(currentAttachment.url, "_blank")
-                      }
-                    }}
-                  >
-                    <div className="bg-background p-2 rounded-lg shadow-sm">
-                      <span className="text-xl">📎</span>
+                  {/* Image Preview */}
+                  {/\.(jpg|jpeg|png|gif|webp)$/i.test(currentAttachment.name) ? (
+                    <div className="space-y-3">
+                      <div className="relative rounded-xl overflow-hidden border border-border/50 bg-muted/30">
+                        <img
+                          src={currentAttachment.url}
+                          alt={currentAttachment.name}
+                          className="w-full h-auto max-h-[400px] object-contain"
+                          loading="lazy"
+                        />
+                      </div>
+                      {/* Optional: Keep download button or small link for full size */}
+                      {/* Download Button for Image */}
+                      <Button
+                        variant="secondary"
+                        className="w-full justify-start gap-3 h-auto py-3 px-4 bg-primary/10 hover:bg-primary/20 border border-primary/20 transition-all"
+                        onClick={() => {
+                          if (webApp) {
+                            webApp.openLink(currentAttachment.url)
+                          } else {
+                            window.open(currentAttachment.url, "_blank")
+                          }
+                        }}
+                      >
+                        <div className="bg-background p-2 rounded-lg shadow-sm">
+                          {/* Download Icon */}
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" x2="12" y1="15" y2="3" /></svg>
+                        </div>
+                        <div className="text-left flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate text-foreground">{currentAttachment.name}</p>
+                          <p className="text-xs text-muted-foreground">{t("downloadFile") || "Yüklə"}</p>
+                        </div>
+                      </Button>
                     </div>
-                    <div className="text-left flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate text-foreground">{currentAttachment.name}</p>
-                      <p className="text-xs text-muted-foreground">{t("downloadFile")}</p>
-                    </div>
-                  </Button>
+                  ) : (
+                    /* Default Download Button for non-images */
+                    <Button
+                      variant="secondary"
+                      className="w-full justify-start gap-3 h-auto py-3 px-4 bg-primary/10 hover:bg-primary/20 border border-primary/20 transition-all"
+                      onClick={() => {
+                        if (webApp) {
+                          webApp.openLink(currentAttachment.url)
+                        } else {
+                          window.open(currentAttachment.url, "_blank")
+                        }
+                      }}
+                    >
+                      <div className="bg-background p-2 rounded-lg shadow-sm">
+                        <span className="text-xl">📎</span>
+                      </div>
+                      <div className="text-left flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate text-foreground">{currentAttachment.name}</p>
+                        <p className="text-xs text-muted-foreground">{t("downloadFile")}</p>
+                      </div>
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
