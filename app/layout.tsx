@@ -5,9 +5,10 @@ import { Analytics } from "@vercel/analytics/next"
 import { ThemeProvider } from "@/components/theme-provider"
 import { TelegramProvider } from "@/src/features/telegram"
 import { TelegramThemeSync } from "@/src/features/telegram/components/telegram-theme-sync"
-import "./globals.css"
+import "@/app/globals.css"
+import { Toaster } from "@/components/ui/sonner"
 
-const inter = Inter({ 
+const inter = Inter({
   subsets: ["latin", "cyrillic", "latin-ext"],
   display: "swap",
   variable: "--font-inter",
@@ -136,6 +137,7 @@ export default function RootLayout({
           </ThemeProvider>
         </TelegramProvider>
         <Analytics />
+        <Toaster />
       </body>
     </html>
   )

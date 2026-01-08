@@ -35,6 +35,7 @@ import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "@/comp
 import RichTextEditor from "@/components/rich-text-editor"
 import MarkdownPreview from "@/components/markdown-preview"
 import { ConfirmDialog } from "@/components/confirm-dialog"
+import { toast } from "sonner"
 
 const AVAILABLE_LANGUAGES = [
   { code: "az", name: "Azərbaycan", flag: "🇦🇿" },
@@ -58,6 +59,7 @@ interface Question {
   attachments?: Record<string, { url: string; name: string } | null>
   keywords?: string[]
   subQuestions?: Question[]
+  translations?: any[]
   order: number
   createdAt: string
 }
@@ -163,6 +165,7 @@ function FlowBuilderContent() {
   const [deleteConfirm, setDeleteConfirm] = useState<{
     type: "category" | "question"
     id: string
+    name: string
   } | null>(null)
 
   useEffect(() => {
@@ -233,6 +236,25 @@ function FlowBuilderContent() {
   }, [selectedCategory, flows.categories]) // Removed currentLang dependency, breadcrumbs use t() which handles currentLang
 
   // Helper functions
+  const [isUploading, setIsUploading] = useState(false)
+
+  const handleFileUpload = async (file: File) => {
+    setIsUploading(true)
+    try {
+      const res = await fetch(`/api/upload?filename=${file.name}`, { method: 'POST', body: file })
+      if (!res.ok) throw new Error("Upload failed")
+      const blob = await res.json()
+      toast.success(`File uploaded: ${file.name}`)
+      return { url: blob.url, name: file.name }
+    } catch (err) {
+      console.error(err)
+      toast.error("Failed to upload file")
+      return null
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
   const findQuestionById = (id: string): Question | null => {
     // Simplified to not take questions array
     const findRecursive = (questions: Question[]): Question | null => {
@@ -468,8 +490,8 @@ function FlowBuilderContent() {
             language: currentLang,
             question: questionTextToSave,
             answer: answerForm,
-            attachmentUrl: answerAttachment?.url,
-            attachmentName: answerAttachment?.name
+            attachmentUrl: answerAttachment ? answerAttachment.url : null,
+            attachmentName: answerAttachment ? answerAttachment.name : null
           }]
         })
       })
@@ -531,8 +553,8 @@ function FlowBuilderContent() {
             language: currentLang,
             question: editForm.question.trim(),
             answer: editForm.answer,
-            attachmentUrl: editAttachment?.url,
-            attachmentName: editAttachment?.name
+            attachmentUrl: editAttachment ? editAttachment.url : null,
+            attachmentName: editAttachment ? editAttachment.name : null
           }]
         })
       })
@@ -1756,15 +1778,8 @@ function FlowBuilderContent() {
                                       onChange={setAnswerForm}
                                       onFileSelect={async (file) => {
                                         if (!file) return
-                                        try {
-                                          const res = await fetch(`/api/upload?filename=${file.name}`, { method: 'POST', body: file })
-                                          const blob = await res.json()
-                                          setAnswerAttachment({ url: blob.url, name: file.name })
-                                          alert(`File uploaded: ${file.name}`)
-                                        } catch (err) {
-                                          console.error(err)
-                                          alert("Upload failed")
-                                        }
+                                        const result = await handleFileUpload(file)
+                                        if (result) setAnswerAttachment(result)
                                       }}
                                     />
                                     {answerAttachment && (
@@ -1852,15 +1867,8 @@ function FlowBuilderContent() {
                                       onChange={(v) => setEditForm({ ...editForm, answer: v })}
                                       onFileSelect={async (file) => {
                                         if (!file) return
-                                        try {
-                                          const res = await fetch(`/api/upload?filename=${file.name}`, { method: 'POST', body: file })
-                                          const blob = await res.json()
-                                          setEditAttachment({ url: blob.url, name: file.name })
-                                          alert(`File uploaded: ${file.name}`)
-                                        } catch (err) {
-                                          console.error(err)
-                                          alert("Upload failed")
-                                        }
+                                        const result = await handleFileUpload(file)
+                                        if (result) setEditAttachment(result)
                                       }}
                                     />
                                     {editAttachment && (
@@ -1933,21 +1941,15 @@ function FlowBuilderContent() {
                           placeholder={`Enter ${lang.name} translation...`}
                           onFileSelect={async (file) => {
                             if (!file) return
-                            try {
-                              const res = await fetch(`/api/upload?filename=${file.name}`, { method: 'POST', body: file })
-                              const blob = await res.json()
+                            const result = await handleFileUpload(file)
+                            if (result) {
                               setTranslationForms(prev => ({
                                 ...prev,
-                                [`${lang.code}_attachmentUrl`]: blob.url,
-                                [`${lang.code}_attachmentName`]: file.name
+                                [`${lang.code}_attachmentUrl`]: result.url,
+                                [`${lang.code}_attachmentName`]: result.name
                               }))
-                              alert(`File uploaded: ${file.name}`)
-                            } catch (err) {
-                              console.error(err)
-                              alert("Upload failed")
                             }
-                          }}
-                        />
+                          }} />
                         {/* Show if file exists */}
                         {(translationForms[`${lang.code}_attachmentName`] || (translationModal.id && findQuestionById(translationModal.id)?.translations?.find(t => t.language === lang.code)?.attachmentName)) && (
                           <div className="mt-1 text-xs text-blue-600 flex items-center justify-between bg-muted/30 p-2 rounded border border-dashed border-blue-200">
