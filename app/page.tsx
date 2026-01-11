@@ -160,6 +160,8 @@ function FlowBuilderContent() {
 
   // Refs for drag and drop to correctly identify target during drop
   const dragCategoryOverIndex = useRef<number | null>(null)
+  // Ref to track if drag should be allowed (only true when hovering/clicking handle)
+  const allowDragRef = useRef(false)
   const dragQuestionOverIndex = useRef<number | null>(null)
 
   const [deleteConfirm, setDeleteConfirm] = useState<{
@@ -437,13 +439,13 @@ function FlowBuilderContent() {
           ...prev,
           questions: updateQuestionRecursively(prev.questions, parentQuestionId, (q) => ({
             ...q,
-            subQuestions: [...(q.subQuestions || []), newQuestion],
+            subQuestions: [newQuestion, ...(q.subQuestions || [])],
           })) as Question[], // Cast to fix type inference
         }))
       } else {
         setFlows((prev) => ({
           ...prev,
-          questions: [...prev.questions, newQuestion],
+          questions: [newQuestion, ...prev.questions],
         }))
       }
       setNewQuestionText("")
@@ -958,6 +960,11 @@ function FlowBuilderContent() {
   }
 
   const handleQuestionDragStart = (e: React.DragEvent, questionId: string) => {
+    // Only allow drag if allowed by handle interaction
+    if (!allowDragRef.current) {
+      e.preventDefault()
+      return
+    }
     setDraggedQuestionId(questionId)
     e.dataTransfer.effectAllowed = "move"
   }
@@ -990,59 +997,92 @@ function FlowBuilderContent() {
       return
     }
 
+    const saveReorder = async (items: { id: string; order: number }[]) => {
+      try {
+        await fetch('/api/questions/reorder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items })
+        })
+      } catch (e) {
+        console.error("Failed to save order", e)
+      }
+    }
+
     if (parentQuestionId) {
       // Reorder within subQuestions
-      setFlows((prev) => ({
-        ...prev,
-        questions: updateQuestionRecursively(prev.questions, parentQuestionId, (parent) => {
-          if (!parent.subQuestions) return parent
-          const sorted = [...parent.subQuestions].sort((a, b) => a.order - b.order)
-          const draggedIndex = sorted.findIndex((q) => q.id === draggedQuestionId)
-          const targetIndex =
-            dragQuestionOverIndex.current !== null
-              ? dragQuestionOverIndex.current
-              : sorted.findIndex((q) => q.id === targetQuestionId)
+      let reorderedItems: { id: string; order: number }[] = []
 
-          if (draggedIndex === -1 || targetIndex === -1) return parent
+      const newQuestions = updateQuestionRecursively(flows.questions, parentQuestionId, (parent) => {
+        if (!parent.subQuestions) return parent
 
-          const newSorted = [...sorted]
-          const [removed] = newSorted.splice(draggedIndex, 1)
-          newSorted.splice(targetIndex, 0, removed)
-
-          const updatedSubQuestions = parent.subQuestions.map((q) => {
-            const newOrder = newSorted.findIndex((sq) => sq.id === q.id)
-            return { ...q, order: newOrder }
-          })
-
-          return { ...parent, subQuestions: updatedSubQuestions }
-        }),
-      }))
-    } else {
-      // Reorder root questions
-      setFlows((prev) => {
-        const categoryQuestions = prev.questions
-          .filter((q) => q.categoryId === selectedCategory)
-          .sort((a, b) => a.order - b.order)
-        const draggedIndex = categoryQuestions.findIndex((q) => q.id === draggedQuestionId)
+        const sorted = [...parent.subQuestions].sort((a, b) => a.order - b.order)
+        const draggedIndex = sorted.findIndex((q) => q.id === draggedQuestionId)
         const targetIndex =
           dragQuestionOverIndex.current !== null
             ? dragQuestionOverIndex.current
-            : categoryQuestions.findIndex((q) => q.id === targetQuestionId)
+            : sorted.findIndex((q) => q.id === targetQuestionId)
 
-        if (draggedIndex === -1 || targetIndex === -1) return prev
+        if (draggedIndex === -1 || targetIndex === -1) return parent
 
-        const newSorted = [...categoryQuestions]
+        const newSorted = [...sorted]
         const [removed] = newSorted.splice(draggedIndex, 1)
         newSorted.splice(targetIndex, 0, removed)
 
-        const updatedQuestions = prev.questions.map((q) => {
-          if (q.categoryId !== selectedCategory) return q
-          const newOrder = newSorted.findIndex((sq) => sq.id === q.id)
+        const updatedSubQuestions = newSorted.map((q, idx) => {
+          // We only need to track items whose order CHANGED, but it's safer/easier to send all siblings in new order
+          const newOrder = idx
           return { ...q, order: newOrder }
         })
 
-        return { ...prev, questions: updatedQuestions }
+        // Prepare payload
+        reorderedItems = updatedSubQuestions.map(q => ({ id: q.id, order: q.order }))
+
+        return { ...parent, subQuestions: updatedSubQuestions }
       })
+
+      setFlows(prev => ({ ...prev, questions: newQuestions }))
+      if (reorderedItems.length > 0) saveReorder(reorderedItems)
+
+    } else {
+      // Reorder root questions
+      let reorderedItems: { id: string; order: number }[] = []
+
+      // context: root questions filtered by current category
+      // We need to operate on the FULL list but only reorder the subset
+
+      const currentCategoryQuestions = flows.questions
+        .filter((q) => q.categoryId === selectedCategory)
+        .sort((a, b) => a.order - b.order)
+
+      const draggedIndex = currentCategoryQuestions.findIndex((q) => q.id === draggedQuestionId)
+      const targetIndex =
+        dragQuestionOverIndex.current !== null
+          ? dragQuestionOverIndex.current
+          : currentCategoryQuestions.findIndex((q) => q.id === targetQuestionId)
+
+      if (draggedIndex !== -1 && targetIndex !== -1) {
+        const newSorted = [...currentCategoryQuestions]
+        const [removed] = newSorted.splice(draggedIndex, 1)
+        newSorted.splice(targetIndex, 0, removed)
+
+        // We need to reconstruct the full list. 
+        // New orders should be 0..N for this category
+        const updatedCategoryQuestions = newSorted.map((q, idx) => ({ ...q, order: idx }))
+
+        reorderedItems = updatedCategoryQuestions.map(q => ({ id: q.id, order: q.order }))
+
+        // Merge back into main list
+        // Map original questions: if in this category, take from updated list, else keep
+        const updatedQuestions = flows.questions.map(q => {
+          if (q.categoryId !== selectedCategory) return q
+          const updated = updatedCategoryQuestions.find(uq => uq.id === q.id)
+          return updated || q
+        })
+
+        setFlows(prev => ({ ...prev, questions: updatedQuestions }))
+        saveReorder(reorderedItems)
+      }
     }
 
     setDraggedQuestionId(null)
@@ -1076,62 +1116,7 @@ function FlowBuilderContent() {
 
   const currentQuestions = getQuestionsAtLevel()
 
-  const reorderQuestion = (questionId: string, direction: "up" | "down", parentQuestionId?: string) => {
-    if (parentQuestionId) {
-      // Reorder within subQuestions
-      setFlows((prev) => ({
-        ...prev,
-        questions: updateQuestionRecursively(prev.questions, parentQuestionId, (parent) => {
-          if (!parent.subQuestions) return parent
-          const sorted = [...parent.subQuestions].sort((a, b) => a.order - b.order)
-          const currentIndex = sorted.findIndex((q) => q.id === questionId)
-          if (currentIndex === -1) return parent
 
-          const newIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1
-          if (newIndex < 0 || newIndex >= sorted.length) return parent
-
-          // Swap orders
-          const updatedSubQuestions = parent.subQuestions.map((q) => {
-            if (q.id === questionId) {
-              return { ...q, order: sorted[newIndex].order }
-            }
-            if (q.id === sorted[newIndex].id) {
-              return { ...q, order: sorted[currentIndex].order }
-            }
-            return q
-          })
-
-          return { ...parent, subQuestions: updatedSubQuestions }
-        }),
-      }))
-    } else {
-      // Reorder root questions
-      setFlows((prev) => {
-        const categoryQuestions = prev.questions
-          .filter((q) => q.categoryId === selectedCategory)
-          .sort((a, b) => a.order - b.order)
-        const currentIndex = categoryQuestions.findIndex((q) => q.id === questionId)
-        if (currentIndex === -1) return prev
-
-        const newIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1
-        if (newIndex < 0 || newIndex >= categoryQuestions.length) return prev
-
-        // Swap orders
-        const updatedQuestions = prev.questions.map((q) => {
-          if (q.categoryId !== selectedCategory) return q
-          if (q.id === questionId) {
-            return { ...q, order: categoryQuestions[newIndex].order }
-          }
-          if (q.id === categoryQuestions[newIndex].id) {
-            return { ...q, order: categoryQuestions[currentIndex].order }
-          }
-          return q
-        })
-
-        return { ...prev, questions: updatedQuestions }
-      })
-    }
-  }
 
   const missingCount = getMissingTranslationsCount()
 
@@ -1585,6 +1570,15 @@ function FlowBuilderContent() {
                           onDragLeave={handleQuestionDragLeave}
                           onDrop={(e) => handleQuestionDrop(e, question.id, parentQuestionId)}
                           onDragEnd={handleQuestionDragEnd}
+                          onMouseDown={(e) => {
+                            // Check if click started on handle
+                            const target = e.target as HTMLElement
+                            if (target.closest(".drag-handle")) {
+                              allowDragRef.current = true
+                            } else {
+                              allowDragRef.current = false
+                            }
+                          }}
                           className={`bg-card border-border transition-all duration-200 ${isDragging ? "opacity-50 scale-[0.98]" : ""
                             } ${isDragOver ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : ""}`}
                         >
@@ -1594,7 +1588,7 @@ function FlowBuilderContent() {
                                 <div className="flex items-center gap-1 pt-1">
                                   <Tooltip>
                                     <TooltipTrigger asChild>
-                                      <div className="cursor-grab active:cursor-grabbing p-1 hover:bg-muted rounded">
+                                      <div className="cursor-grab active:cursor-grabbing p-1 hover:bg-muted rounded drag-handle">
                                         <GripVertical className="w-4 h-4 text-muted-foreground" />
                                       </div>
                                     </TooltipTrigger>
@@ -1602,36 +1596,8 @@ function FlowBuilderContent() {
                                       <p>Drag to reorder</p>
                                     </TooltipContent>
                                   </Tooltip>
-                                  <div className="flex flex-col">
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          size="icon"
-                                          variant="ghost"
-                                          className="h-5 w-5 p-0"
-                                          onClick={() => reorderQuestion(question.id, "up", parentQuestionId)}
-                                          disabled={index === 0}
-                                        >
-                                          <ArrowUp className="w-3 h-3" />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>Move up</TooltipContent>
-                                    </Tooltip>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          size="icon"
-                                          variant="ghost"
-                                          className="h-5 w-5 p-0"
-                                          onClick={() => reorderQuestion(question.id, "down", parentQuestionId)}
-                                          disabled={index === currentQuestions.length - 1}
-                                        >
-                                          <ArrowDown className="w-3 h-3" />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>Move down</TooltipContent>
-                                    </Tooltip>
-                                  </div>
+                                  {/* Up/Down buttons removed as per request for drag-only reordering */}
+
                                 </div>
 
                                 <div className="flex-1">

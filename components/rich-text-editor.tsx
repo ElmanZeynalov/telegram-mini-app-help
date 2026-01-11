@@ -52,6 +52,42 @@ export default function RichTextEditor({
     if (onSubmit && e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
       e.preventDefault()
       onSubmit()
+      return
+    }
+
+    if (e.key === "Enter") {
+      const textarea = textareaRef.current
+      if (!textarea) return
+
+      const start = textarea.selectionStart
+      const value = textarea.value
+      // Get current line up to cursor
+      const lastNewLine = value.lastIndexOf("\n", start - 1)
+      const currentLine = value.substring(lastNewLine + 1, start)
+
+      // Check for list patterns: "- ", "* ", "1. "
+      const match = currentLine.match(/^(\s*)([-*]|\d+\.)\s/)
+      if (match) {
+        if (currentLine.trim() === match[0].trim()) {
+          // If line is empty list item (just marker), remove it
+          e.preventDefault()
+          const newLineStart = lastNewLine + 1
+          const newValue = value.substring(0, newLineStart) + value.substring(start)
+          onChange(newValue)
+          setTimeout(() => {
+            textarea.selectionStart = textarea.selectionEnd = newLineStart
+          }, 0)
+        } else {
+          // Continue list
+          e.preventDefault()
+          const insertion = "\n" + match[0]
+          const newValue = value.substring(0, start) + insertion + value.substring(start)
+          onChange(newValue)
+          setTimeout(() => {
+            textarea.selectionStart = textarea.selectionEnd = start + insertion.length
+          }, 0)
+        }
+      }
     }
   }
 
@@ -199,7 +235,16 @@ export default function RichTextEditor({
               <Button
                 size="sm"
                 variant="ghost"
-                onClick={() => insertMarkdown("- ")}
+                onClick={() => {
+                  const textarea = textareaRef.current
+                  if (textarea) {
+                    const start = textarea.selectionStart
+                    const value = textarea.value
+                    // If not at start of line, add newline
+                    const prefix = (start > 0 && value[start - 1] !== "\n") ? "\n- " : "- "
+                    insertMarkdown(prefix)
+                  }
+                }}
                 className="h-8 w-8 p-0"
                 type="button"
               >

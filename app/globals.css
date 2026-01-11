@@ -157,9 +157,13 @@ html {
   @apply mb-4 last:mb-0;
 }
 
-.prose-answer ul,
+.prose-answer ul {
+  @apply mb-4 space-y-2 last:mb-0 list-disc;
+  padding-inline-start: 1.25rem;
+}
+
 .prose-answer ol {
-  @apply mb-4 space-y-2 last:mb-0;
+  @apply mb-4 space-y-2 last:mb-0 list-decimal;
   padding-inline-start: 1.25rem;
 }
 

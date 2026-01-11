@@ -55,10 +55,25 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Translations are required" }, { status: 400 })
         }
 
+        // Find the lowest order among siblings to put this one first
+        const where: any = {}
+        if (categoryId) where.categoryId = categoryId
+        if (parentId) where.parentId = parentId
+        else if (categoryId) where.parentId = null
+
+        const firstQuestion = await prisma.question.findFirst({
+            where,
+            orderBy: { order: 'asc' },
+            select: { order: true }
+        })
+
+        const newOrder = firstQuestion ? firstQuestion.order - 1 : 0
+
         const question = await prisma.question.create({
             data: {
                 categoryId,
                 parentId,
+                order: newOrder,
                 translations: {
                     create: translations,
                 },
