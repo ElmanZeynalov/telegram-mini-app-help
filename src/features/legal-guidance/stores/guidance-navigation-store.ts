@@ -16,6 +16,7 @@ const initialState: GuidanceNavigationState = {
   currentAttachment: null,
   breadcrumbs: [],
   navigationHistory: [],
+  lastSelectedQuestionId: null,
 }
 
 export const useGuidanceNavigationStore = create<GuidanceNavigationStore>()((set, get) => ({
@@ -36,6 +37,7 @@ export const useGuidanceNavigationStore = create<GuidanceNavigationStore>()((set
       breadcrumbs: [{ id: category.id, label: getText(category.name), type: "category" }],
       navigationHistory: [],
       screen: "questions",
+      lastSelectedQuestionId: null,
     })
   },
 
@@ -60,6 +62,7 @@ export const useGuidanceNavigationStore = create<GuidanceNavigationStore>()((set
         breadcrumbs: newBreadcrumbs,
         navigationHistory: newHistory,
         screen: "answer",
+        lastSelectedQuestionId: question.id,
       })
     } else if (question.subQuestions && question.subQuestions.length > 0) {
       set({
@@ -67,6 +70,7 @@ export const useGuidanceNavigationStore = create<GuidanceNavigationStore>()((set
         currentQuestion: question,
         breadcrumbs: newBreadcrumbs,
         navigationHistory: newHistory,
+        lastSelectedQuestionId: question.id,
       })
     }
   },
@@ -117,6 +121,7 @@ export const useGuidanceNavigationStore = create<GuidanceNavigationStore>()((set
     currentAnswer: null,
     breadcrumbs: [],
     navigationHistory: [],
+    lastSelectedQuestionId: null,
   }),
 
   initialize: async (baseUrl: string = "") => {

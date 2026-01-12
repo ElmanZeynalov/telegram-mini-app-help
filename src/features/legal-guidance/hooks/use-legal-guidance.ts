@@ -45,6 +45,7 @@ export function useLegalGuidance() {
     currentAttachment: navigationStore.currentAttachment,
     breadcrumbs: navigationStore.breadcrumbs,
     navigationHistory: navigationStore.navigationHistory,
+    lastSelectedQuestionId: navigationStore.lastSelectedQuestionId,
     selectCategory,
     selectQuestion,
     goBack: navigationStore.goBack,

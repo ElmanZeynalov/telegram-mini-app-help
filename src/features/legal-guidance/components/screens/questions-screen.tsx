@@ -4,18 +4,35 @@ import { useLegalGuidance } from "../../hooks/use-legal-guidance"
 import { NavigableContentLayout } from "../layout/navigable-content-layout"
 import { HelpCircle, ChevronRight, Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useTelegram } from "@/src/features/telegram/hooks/use-telegram"
 import ReactMarkdown from "react-markdown"
 import { Button } from "@/components/ui/button"
 
 export function QuestionsScreen() {
-  const { currentQuestions, currentQuestion, selectedCategory, selectQuestion, getText, t, navigationHistory, locale } =
+  const { currentQuestions, currentQuestion, selectedCategory, selectQuestion, getText, t, navigationHistory, locale, lastSelectedQuestionId } =
     useLegalGuidance()
   const [searchQuery, setSearchQuery] = useState("")
 
   const isNested = navigationHistory.length > 0
   const { webApp } = useTelegram()
+
+  // Scroll restoration
+  useEffect(() => {
+    if (lastSelectedQuestionId && !searchQuery) {
+      setTimeout(() => {
+        const element = document.getElementById(`question-${lastSelectedQuestionId}`)
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" })
+          // Optional: Highlight effect
+          element.classList.add("ring-2", "ring-primary")
+          setTimeout(() => {
+            element.classList.remove("ring-2", "ring-primary")
+          }, 1500)
+        }
+      }, 100) // Small delay to ensure rendering
+    }
+  }, [lastSelectedQuestionId, searchQuery])
 
   const filteredQuestions = currentQuestions.filter((question) =>
     getText(question.question).toLowerCase().includes(searchQuery.toLowerCase())
@@ -29,13 +46,6 @@ export function QuestionsScreen() {
     if (!attachments) return null
     return attachments[locale] || attachments.az || null
   })() : null
-
-  // Re-calculate attachment with correct scope if needed, 
-  // but actually we can just access it from the first useLegalGuidance call 
-  // if we destructure it there. 
-
-  // Let's refine the destructuring from the first line:
-  // const { currentQuestions, currentQuestion, selectedCategory, selectQuestion, getText, t, navigationHistory, locale } = useLegalGuidance()
 
   return (
     <NavigableContentLayout>
@@ -182,6 +192,7 @@ export function QuestionsScreen() {
             filteredQuestions.map((question, index) => (
               <button
                 key={question.id}
+                id={`question-${question.id}`}
                 onClick={() => selectQuestion(question)}
                 className="w-full p-4 text-left bg-card hover:bg-accent/50 rounded-xl border border-border/40 shadow-sm hover:shadow-md hover:border-primary/20 transition-all duration-200 group"
               >

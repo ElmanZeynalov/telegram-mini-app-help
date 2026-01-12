@@ -57,6 +57,7 @@ export interface GuidanceNavigationState {
   currentAttachment: { url: string; name: string } | null
   breadcrumbs: BreadcrumbItem[]
   navigationHistory: NavigationHistoryItem[]
+  lastSelectedQuestionId: string | null
 }
 
 export interface GuidanceNavigationActions {
