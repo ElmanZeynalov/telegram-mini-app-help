@@ -8,6 +8,7 @@ import ReactMarkdown from "react-markdown"
 import { AnswerFeedback } from "../feedback/answer-feedback"
 
 import { useTelegram } from "@/src/features/telegram/hooks/use-telegram"
+import { processEmojiChildren } from "../../utils/emoji-utils"
 
 export function AnswerScreen() {
   const { currentAnswer, currentAttachment, breadcrumbs, goToCategories, t, selectedCategory, getText } = useLegalGuidance()
@@ -46,6 +47,11 @@ export function AnswerScreen() {
               <div className="prose-answer text-card-foreground">
                 <ReactMarkdown
                   components={{
+                    p: ({ children }) => <p className="leading-relaxed mb-4 last:mb-0">{processEmojiChildren(children)}</p>,
+                    li: ({ children }) => <li>{processEmojiChildren(children)}</li>,
+                    h1: ({ children }) => <h1>{processEmojiChildren(children)}</h1>,
+                    h2: ({ children }) => <h2>{processEmojiChildren(children)}</h2>,
+                    h3: ({ children }) => <h3>{processEmojiChildren(children)}</h3>,
                     a: ({ node, href, children, ...props }) => {
                       const handleClick = (e: React.MouseEvent) => {
                         e.preventDefault()
@@ -69,7 +75,7 @@ export function AnswerScreen() {
                           className="text-blue-600 dark:text-blue-400 font-medium hover:underline break-words cursor-pointer"
                           {...props}
                         >
-                          {children}
+                          {processEmojiChildren(children)}
                         </span>
                       )
                     }

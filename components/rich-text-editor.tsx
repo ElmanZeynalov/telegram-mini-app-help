@@ -4,8 +4,13 @@ import type React from "react"
 
 import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { Bold, Italic, List, Heading2, Link, Code, HelpCircle, Paperclip } from "lucide-react"
+import { Bold, Italic, List, Heading2, Link, Code, HelpCircle, Paperclip, Smile } from "lucide-react"
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip"
+import dynamic from "next/dynamic"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+
+// Dynamically import EmojiPicker to avoid SSR issues
+const EmojiPicker = dynamic(() => import("emoji-picker-react"), { ssr: false })
 
 interface RichTextEditorProps {
   value: string
@@ -44,6 +49,24 @@ export default function RichTextEditor({
     setTimeout(() => {
       textarea.selectionStart = start + before.length
       textarea.selectionEnd = start + before.length + selectedText.length
+      textarea.focus()
+    }, 0)
+  }
+
+  const insertEmoji = (emojiData: any) => {
+    const textarea = textareaRef.current
+    if (!textarea) return
+
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const emoji = emojiData.emoji
+    const newText = value.substring(0, start) + emoji + value.substring(end)
+
+    onChange(newText)
+
+    setTimeout(() => {
+      textarea.selectionStart = start + emoji.length
+      textarea.selectionEnd = start + emoji.length
       textarea.focus()
     }, 0)
   }
@@ -128,6 +151,30 @@ export default function RichTextEditor({
                 <p>Italic (*text*)</p>
               </TooltipContent>
             </Tooltip>
+
+            <Popover>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <PopoverTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 w-7 p-0"
+                      type="button"
+                    >
+                      <Smile className="w-3.5 h-3.5" />
+                    </Button>
+                  </PopoverTrigger>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p>Insert Emoji</p>
+                </TooltipContent>
+              </Tooltip>
+              <PopoverContent className="p-0 border-none w-auto" align="start">
+                <EmojiPicker onEmojiClick={insertEmoji} width={300} height={400} />
+              </PopoverContent>
+            </Popover>
+
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -255,6 +302,30 @@ export default function RichTextEditor({
               <p>Bullet List</p>
             </TooltipContent>
           </Tooltip>
+
+          <Popover>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <PopoverTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 w-8 p-0"
+                    type="button"
+                  >
+                    <Smile className="w-4 h-4" />
+                  </Button>
+                </PopoverTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                <p>Insert Emoji</p>
+              </TooltipContent>
+            </Tooltip>
+            <PopoverContent className="p-0 border-none w-auto" align="start">
+              <EmojiPicker onEmojiClick={insertEmoji} width={300} height={400} />
+            </PopoverContent>
+          </Popover>
+
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
