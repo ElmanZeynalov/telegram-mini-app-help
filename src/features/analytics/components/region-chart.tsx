@@ -14,37 +14,21 @@ export function RegionChart({ data }: RegionChartProps) {
     return (
         <Card className="col-span-3">
             <CardHeader>
-                <CardTitle>Region Distribution</CardTitle>
+                <CardTitle>User Cities</CardTitle>
             </CardHeader>
             <CardContent>
-                <ResponsiveContainer width="100%" height={350}>
-                    <PieChart>
-                        <Pie
-                            data={data}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={60}
-                            outerRadius={100}
-                            fill="#8884d8"
-                            paddingAngle={5}
-                            dataKey="value"
-                            nameKey="name"
-                        >
-                            {data.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                        </Pie>
-                        <Tooltip
-                            contentStyle={{
-                                borderRadius: '8px',
-                                border: 'none',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                                backgroundColor: 'hsl(var(--background))'
-                            }}
-                        />
-                        <Legend verticalAlign="bottom" height={36} />
-                    </PieChart>
-                </ResponsiveContainer>
+                <div className="h-[350px] overflow-y-auto pr-2 space-y-2">
+                    {data.length === 0 ? (
+                        <div className="text-center text-muted-foreground pt-10">No city data available</div>
+                    ) : (
+                        data.map((item, index) => (
+                            <div key={index} className="flex justify-between items-center p-2 rounded-md hover:bg-muted/50 transition-colors border">
+                                <span className="font-medium text-sm">{item.name}</span>
+                                <span className="font-bold text-primary">{item.value}</span>
+                            </div>
+                        ))
+                    )}
+                </div>
             </CardContent>
         </Card>
     )

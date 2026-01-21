@@ -147,7 +147,11 @@ export async function GET(request: Request) {
                 region: true
             },
             where: {
-                region: { not: null },
+                region: {
+                    not: null,
+                    // Filter out legacy language codes that might be stored in 'region'
+                    notIn: ['az', 'ru', 'en']
+                },
                 ...regionFilter
             }
         })
