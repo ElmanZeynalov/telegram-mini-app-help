@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import { useLegalGuidance } from "../../hooks/use-legal-guidance"
 import { useTelegram } from "@/src/features/telegram"
+import { useAnalytics } from "@/src/features/analytics/context/analytics-context"
 
 interface NavigableContentLayoutProps {
   children: React.ReactNode
@@ -24,7 +25,11 @@ import { XCircle } from "lucide-react"
 export function NavigableContentLayout({ children, footer }: NavigableContentLayoutProps) {
   const { goBack, goHome, t } = useLegalGuidance()
 
+  const { track } = useAnalytics()
+
   const handleEmergencyExit = () => {
+    track('emergency_exit')
+
     if (typeof window !== "undefined") {
       // If inside Telegram
       if (window.Telegram?.WebApp?.initData) {

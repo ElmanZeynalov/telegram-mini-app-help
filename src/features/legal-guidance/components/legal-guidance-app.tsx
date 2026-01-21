@@ -7,16 +7,30 @@ import { QuestionsScreen } from "./screens/questions-screen"
 import { AnswerScreen } from "./screens/answer-screen"
 import { AnimatePresence, motion } from "framer-motion"
 import { useTelegramBackButton, useTelegramHaptic } from "@/src/features/telegram"
+import { useAnalytics } from "@/src/features/analytics/context/analytics-context"
 
 import { useEffect } from "react"
 
 export function LegalGuidanceApp() {
-  const { screen, goBack, initialize } = useLegalGuidance()
+  const { screen, goBack, initialize, selectedCategory, currentQuestion, getText, locale } = useLegalGuidance()
   const { selectionChanged } = useTelegramHaptic()
+  const { track } = useAnalytics()
 
   useEffect(() => {
     initialize()
   }, [initialize])
+
+  // Track screen changes
+  useEffect(() => {
+    // Only track if screen/content actually changes to avoid duplicates
+    if (screen === 'categories') {
+      track('view_categories', { language: locale })
+    } else if (screen === 'questions' && selectedCategory) {
+      track('view_category', { id: selectedCategory.id, name: selectedCategory.name, language: locale })
+    } else if (screen === 'answer' && currentQuestion) {
+      track('view_question', { id: currentQuestion.id, question: getText(currentQuestion.question), language: locale })
+    }
+  }, [screen, selectedCategory, currentQuestion, track, getText, locale])
 
   // Show back button on all screens except home
   const showBackButton = screen !== "home"

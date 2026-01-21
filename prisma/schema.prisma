@@ -64,3 +64,36 @@ model QuestionTranslation {
 
   @@unique([questionId, language])
 }
+
+model User {
+  id        String   @id @default(uuid())
+  telegramId String? @unique
+  region    String?  // Stores City (e.g. Baku)
+  language  String?  // Stores Language (e.g. az, ru)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  sessions  Session[]
+  events    AnalyticsEvent[]
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String?
+  startTime DateTime @default(now())
+  endTime   DateTime?
+  user      User?    @relation(fields: [userId], references: [id])
+  events    AnalyticsEvent[]
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(uuid())
+  sessionId String
+  eventType String // e.g., "view_category", "emergency_exit"
+  metadata  Json?    // e.g., { categoryId: "...", questionId: "..." }
+  createdAt DateTime @default(now())
+  
+  session   Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  userId    String?
+  user      User?   @relation(fields: [userId], references: [id])
+}

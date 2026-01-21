@@ -88,7 +88,12 @@ export default function RootLayout({
                     
                     // Request fullscreen mode (Bot API 8.0+)
                     if (typeof tg.requestFullscreen === 'function') {
-                      tg.requestFullscreen();
+                      // Check version if possible, or try catch wrapper
+                      try {
+                          tg.requestFullscreen();
+                      } catch (e) {
+                          console.log('Fullscreen not supported in this version');
+                      }
                     }
                     
                     // Disable vertical swipes to prevent accidental close
@@ -99,7 +104,8 @@ export default function RootLayout({
                     // Also try via postEvent for older clients
                     if (tg.postEvent) {
                       tg.postEvent('web_app_expand');
-                      tg.postEvent('web_app_request_fullscreen');
+                      // Only request fullscreen if explicitly supported/desired, otherwise skip to avoid version errors
+                      // tg.postEvent('web_app_request_fullscreen'); 
                     }
                     
                     return true;

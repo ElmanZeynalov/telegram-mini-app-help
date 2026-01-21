@@ -3,14 +3,17 @@
 import { Button } from "@/components/ui/button"
 import { useLegalGuidance } from "../../hooks/use-legal-guidance"
 import { ArrowRight } from "lucide-react"
+import { useAnalytics } from "@/src/features/analytics/context/analytics-context"
 import { CenteredContentLayout } from "../layout/centered-content-layout"
 import { FeministIcon } from "@/src/assets/icons"
 
 export function HomeScreen() {
   const { setScreen, t, setLocale } = useLegalGuidance()
+  const { track } = useAnalytics()
 
   // Handler for language selection + navigation
   const handleStart = (lang: "az" | "ru") => {
+    track('region_select', { region: lang, language: lang })
     setLocale(lang)
     setScreen("categories")
   }

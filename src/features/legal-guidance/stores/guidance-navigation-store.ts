@@ -63,6 +63,7 @@ export const useGuidanceNavigationStore = create<GuidanceNavigationStore>()((set
         navigationHistory: newHistory,
         screen: "answer",
         lastSelectedQuestionId: question.id,
+        currentQuestion: question,
       })
     } else if (question.subQuestions && question.subQuestions.length > 0) {
       set({
