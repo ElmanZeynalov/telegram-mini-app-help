@@ -1,6 +1,7 @@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
-import { Download } from "lucide-react"
+import { Download, Users } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 import {
     Select,
@@ -19,6 +20,7 @@ interface StatsHeaderProps {
 }
 
 export function StatsHeader({ period, setPeriod, language, setLanguage, onExport }: StatsHeaderProps) {
+    const router = useRouter()
     return (
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
@@ -29,6 +31,11 @@ export function StatsHeader({ period, setPeriod, language, setLanguage, onExport
             </div>
 
             <div className="flex items-center gap-2">
+                <Button size="sm" onClick={() => router.push('/admin/users')}>
+                    <Users className="w-4 h-4 mr-2" />
+                    Users
+                </Button>
+
                 <Select value={language} onValueChange={setLanguage}>
                     <SelectTrigger className="w-[140px]">
                         <SelectValue placeholder="Language" />

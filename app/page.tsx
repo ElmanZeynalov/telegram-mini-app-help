@@ -133,19 +133,6 @@ function FlowBuilderContent() {
 
 
 
-
-
-
-  // Refs for drag and drop to correctly identify target during drop
-
-
-
-
-
-
-  // localStorage sync removed
-
-
   useEffect(() => {
     if (selectedCategory) {
       const category = flows.categories.find((c) => c.id === selectedCategory)
@@ -217,7 +204,6 @@ function FlowBuilderContent() {
       />
 
       <div className="flex h-screen bg-background text-foreground">
-        {/* Left Sidebar - Categories */}
         {/* Left Sidebar - Categories */}
         <FlowSidebar
           categories={flows.categories}
@@ -295,16 +281,6 @@ function FlowBuilderContent() {
                     </div>
                   </CardContent>
                 </Card>
-
-                {/* Questions List */}
-                {/* Error Display */}
-                {/* Note: I need to define 'error' state first. I will assume I add it or use existing mechanism, but wait... 
-                    I haven't added 'error' state to the component yet. 
-                    I must add [error, setError] first! 
-                    I can't do that easily with replace_file_content if I'm not careful about where I insert it.
-                    I'll add the UI part here assuming 'error' will be available or I'll skip error UI for a moment and just fix the layout.
-                    Actually, let's just clean up the 'DEBUG' block.
-                */}
 
                 <div className="text-xs text-muted-foreground mb-2 flex justify-between">
                   <span>Questions in DB: {flows.questions.length}</span>

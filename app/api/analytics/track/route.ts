@@ -4,7 +4,8 @@ import prisma from '@/lib/prisma'
 export async function POST(request: Request) {
     try {
         const body = await request.json()
-        const { eventType, metadata, telegramId, region, existingSessionId } = body
+        console.log("Analytics API Received:", body)
+        const { eventType, metadata, telegramId, region, existingSessionId, firstName, lastName, username } = body
 
         // 1. Identity Resolution: Find or Create User
         let user = null
@@ -16,7 +17,7 @@ export async function POST(request: Request) {
         // Extract language from metadata if available (for language_select event or similar)
         // OR rely on 'region' param in body if frontend sends language there (legacy compatibility)
         // Ideally frontend should send language explicitly.
-        const language = metadata?.language || (region && (region === 'az' || region === 'ru') ? region : undefined)
+        const language = metadata?.language
 
         if (telegramIdStr) {
             user = await prisma.user.upsert({
@@ -25,12 +26,19 @@ export async function POST(request: Request) {
                     // Update City (region) if detected
                     ...(city ? { region: city } : {}),
                     // Update Language if detected
-                    ...(language ? { language } : {})
+                    ...(language ? { language } : {}),
+                    // Update Name info
+                    ...(firstName ? { firstName } : {}),
+                    ...(lastName ? { lastName } : {}),
+                    ...(username ? { username } : {})
                 },
                 create: {
                     telegramId: telegramIdStr,
                     region: city,
-                    language: language
+                    language: language,
+                    firstName: firstName || null,
+                    lastName: lastName || null,
+                    username: username || null
                 }
             })
         } else {

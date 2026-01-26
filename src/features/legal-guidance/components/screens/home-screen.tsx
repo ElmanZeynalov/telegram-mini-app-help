@@ -13,7 +13,7 @@ export function HomeScreen() {
 
   // Handler for language selection + navigation
   const handleStart = (lang: "az" | "ru") => {
-    track('region_select', { region: lang, language: lang })
+    track('language_select', { language: lang })
     setLocale(lang)
     setScreen("categories")
   }

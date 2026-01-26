@@ -95,7 +95,7 @@ export async function GET(request: Request) {
         const contentData = Object.entries(categoryCounts)
             .map(([name, views]) => ({ name, views }))
             .sort((a, b) => b.views - a.views)
-            .slice(0, 5)
+            .slice(0, 50)
 
         // 3. Top Questions
         const questionEvents = await prisma.analyticsEvent.findMany({
@@ -120,7 +120,7 @@ export async function GET(request: Request) {
         const questionData = Object.entries(questionCounts)
             .map(([name, views]) => ({ name, views }))
             .sort((a, b) => b.views - a.views)
-            .slice(0, 5)
+            .slice(0, 50)
 
         // 3. Drop-off / Flow
         const emergencyExits = await prisma.analyticsEvent.count({

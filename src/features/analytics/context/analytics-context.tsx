@@ -16,16 +16,36 @@ const AnalyticsContext = createContext<AnalyticsContextType>({
 export const useAnalytics = () => useContext(AnalyticsContext)
 
 export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
-    const { user } = useTelegram()
+    const { webApp, isInitialized: isTelegramInitialized } = useTelegram()
+    const user = webApp?.initDataUnsafe?.user
     const [sessionId, setSessionId] = useState<string | null>(null)
-    const isInitialized = useRef(false)
+    const isTrackingInitialized = useRef(false)
 
     // Initialize Session
     useEffect(() => {
-        if (isInitialized.current) return
-        isInitialized.current = true
+        console.log("[Analytics] Effect triggered. isTelegramInitialized:", isTelegramInitialized)
+
+        // Wait for Telegram SDK to initialize before starting session
+        if (!isTelegramInitialized) {
+            console.log("[Analytics] Waiting for SDK...")
+            return
+        }
+
+        console.log("[Analytics] SDK Initialized. WebApp User:", user)
+
+        // Prevent double tracking
+        if (isTrackingInitialized.current) {
+            console.log("[Analytics] Already initialized, skipping.")
+            return
+        }
+        isTrackingInitialized.current = true
 
         const initSession = async () => {
+            console.log("[Analytics] Sending session_start...", {
+                telegramId: user?.id,
+                firstName: user?.first_name,
+                username: user?.username
+            })
             try {
                 // Check local storage for existing session
                 const storedSessionId = localStorage.getItem("analytics_session_id")
@@ -37,7 +57,10 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
                     body: JSON.stringify({
                         eventType: "session_start",
                         telegramId: user?.id ? String(user.id) : undefined,
-                        existingSessionId: storedSessionId || undefined
+                        existingSessionId: storedSessionId || undefined,
+                        firstName: user?.first_name,
+                        lastName: user?.last_name,
+                        username: user?.username
                     }),
                 })
 
@@ -54,7 +77,7 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
         }
 
         initSession()
-    }, [user])
+    }, [isTelegramInitialized, user])
 
     const track = async (eventType: string, metadata?: any) => {
         try {
