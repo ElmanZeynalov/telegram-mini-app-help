@@ -4,24 +4,41 @@ import { useState } from "react"
 import { ThumbsUp, ThumbsDown, Sparkles } from "lucide-react"
 import { useLegalGuidance } from "../../hooks/use-legal-guidance"
 import { useTelegramHaptic } from "@/src/features/telegram"
+import { useAnalytics } from "@/src/features/analytics/context/analytics-context"
 
 type FeedbackState = "idle" | "positive" | "negative" | "submitted"
 
-export function AnswerFeedback() {
+interface AnswerFeedbackProps {
+  questionId?: string
+  questionText?: string
+}
+
+export function AnswerFeedback({ questionId, questionText }: AnswerFeedbackProps) {
   const { t } = useLegalGuidance()
   const haptic = useTelegramHaptic()
+  const { track } = useAnalytics()
   const [state, setState] = useState<FeedbackState>("idle")
 
   const handlePositive = () => {
-    try { haptic.impactOccurred("medium") } catch {}
-    console.log("[Feedback] 👍 Positive feedback submitted")
+    try { haptic.impactOccurred("medium") } catch { }
+
+    track("feedback_yes", {
+      questionId,
+      questionText: questionText?.substring(0, 100) // Truncate if too long
+    })
+
     setState("positive")
     setTimeout(() => setState("submitted"), 1200)
   }
 
   const handleNegative = () => {
-    try { haptic.impactOccurred("light") } catch {}
-    console.log("[Feedback] 👎 Negative feedback submitted")
+    try { haptic.impactOccurred("light") } catch { }
+
+    track("feedback_no", {
+      questionId,
+      questionText: questionText?.substring(0, 100)
+    })
+
     setState("negative")
     setTimeout(() => setState("submitted"), 1200)
   }
@@ -67,7 +84,7 @@ export function AnswerFeedback() {
     <div className="mt-8 py-5 px-4 rounded-2xl bg-muted/20 border border-border/20 animate-fade-in">
       <div className="flex items-center justify-between">
         <span className="text-sm text-muted-foreground">{t("feedbackQuestion")}</span>
-        
+
         <div className="flex items-center gap-2">
           <button
             onClick={handlePositive}

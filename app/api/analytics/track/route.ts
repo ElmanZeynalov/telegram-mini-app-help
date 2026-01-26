@@ -4,7 +4,6 @@ import prisma from '@/lib/prisma'
 export async function POST(request: Request) {
     try {
         const body = await request.json()
-        console.log("Analytics API Received:", body)
         const { eventType, metadata, telegramId, region, existingSessionId, firstName, lastName, username } = body
 
         // 1. Identity Resolution: Find or Create User
@@ -66,9 +65,14 @@ export async function POST(request: Request) {
                 }
             })
             sessionId = session.id
-        } else if (user && !session.userId) {
-            // Link anonymous session to user if they just logged in?
-            // For now, just keep as is.
+        }
+
+        // Always ensure session is linked to current user if found
+        if (user && session && session.userId !== user.id) {
+            await prisma.session.update({
+                where: { id: session.id },
+                data: { userId: user.id }
+            })
         }
 
         // 3. Log Event

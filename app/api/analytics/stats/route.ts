@@ -160,10 +160,41 @@ export async function GET(request: Request) {
             value: g._count.region
         }))
 
+        // 5. Feedback Stats
+        const feedbackEvents = await prisma.analyticsEvent.findMany({
+            where: {
+                eventType: { in: ['feedback_yes', 'feedback_no'] },
+                createdAt: { gte: startDate },
+                ...eventFilter
+            },
+            select: {
+                eventType: true,
+                metadata: true
+            }
+        })
+
+        const feedbackMap: Record<string, { yes: number, no: number }> = {}
+
+        feedbackEvents.forEach((event: any) => {
+            const question = extractName(event.metadata?.questionText || 'Unknown Question')
+            if (!feedbackMap[question]) feedbackMap[question] = { yes: 0, no: 0 }
+
+            if (event.eventType === 'feedback_yes') feedbackMap[question].yes++
+            else feedbackMap[question].no++
+        })
+
+        const feedbackData = Object.entries(feedbackMap).map(([question, counts]) => ({
+            question,
+            yes: counts.yes,
+            no: counts.no,
+            total: counts.yes + counts.no
+        })).sort((a, b) => b.total - a.total).slice(0, 50)
+
         return NextResponse.json({
             usage: usageData,
             content: contentData,
             questions: questionData,
+            feedback: feedbackData,
             safety: {
                 totalEmergencyExits: emergencyExits,
                 totalSessions

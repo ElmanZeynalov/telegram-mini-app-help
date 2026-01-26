@@ -8,12 +8,13 @@ import { UsageChart } from "@/src/features/analytics/components/usage-chart"
 import { RegionChart } from "@/src/features/analytics/components/region-chart"
 import { ContentChart } from "@/src/features/analytics/components/content-chart"
 import { QuestionInterestChart } from "@/src/features/analytics/components/question-interest-chart"
+import { UserListTable } from "@/src/features/analytics/components/user-list-table"
 import { StatsPeriod } from "@/src/features/analytics/types"
 
 export default function AnalyticsPage() {
     const [period, setPeriod] = useState<StatsPeriod>('7d')
     const [language, setLanguage] = useState<string>('all')
-    const { stats, loading, error } = useStats(period, language)
+    const { stats, loading, error } = useStats(period, language, 5000)
 
     const handleExport = () => {
         if (!stats) return
@@ -64,6 +65,8 @@ export default function AnalyticsPage() {
 
             <ContentChart data={stats.content} />
             <QuestionInterestChart data={stats.questions} />
+
+            <UserListTable />
         </div>
     )
 }

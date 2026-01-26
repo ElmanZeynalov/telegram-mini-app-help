@@ -23,29 +23,14 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
 
     // Initialize Session
     useEffect(() => {
-        console.log("[Analytics] Effect triggered. isTelegramInitialized:", isTelegramInitialized)
-
         // Wait for Telegram SDK to initialize before starting session
-        if (!isTelegramInitialized) {
-            console.log("[Analytics] Waiting for SDK...")
-            return
-        }
-
-        console.log("[Analytics] SDK Initialized. WebApp User:", user)
+        if (!isTelegramInitialized) return
 
         // Prevent double tracking
-        if (isTrackingInitialized.current) {
-            console.log("[Analytics] Already initialized, skipping.")
-            return
-        }
+        if (isTrackingInitialized.current) return
         isTrackingInitialized.current = true
 
         const initSession = async () => {
-            console.log("[Analytics] Sending session_start...", {
-                telegramId: user?.id,
-                firstName: user?.first_name,
-                username: user?.username
-            })
             try {
                 // Check local storage for existing session
                 const storedSessionId = localStorage.getItem("analytics_session_id")

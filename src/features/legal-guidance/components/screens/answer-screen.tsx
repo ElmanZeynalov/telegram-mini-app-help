@@ -149,7 +149,10 @@ export function AnswerScreen() {
             </div>
 
             {/* Feedback section - appears after the answer */}
-            <AnswerFeedback />
+            <AnswerFeedback
+              questionId={breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1].id : undefined}
+              questionText={questionLabel}
+            />
           </>
         ) : (
           <div className="flex flex-col items-center justify-center py-16 text-center">

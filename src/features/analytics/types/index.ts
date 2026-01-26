@@ -24,6 +24,12 @@ export interface AnalyticsStats {
     questions: ContentStat[]
     safety: SafetyStat
     regions: RegionStat[]
+    feedback?: {
+        question: string
+        yes: number
+        no: number
+        total: number
+    }[]
 }
 
 export type StatsPeriod = '7d' | '30d' | '90d'
