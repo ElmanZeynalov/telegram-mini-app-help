@@ -7,6 +7,7 @@ export async function GET(request: Request) {
         const { searchParams } = new URL(request.url)
         const question = searchParams.get('question')
         const period = searchParams.get('period') || '7d'
+        const language = searchParams.get('language') || 'all'
 
         if (!question) {
             return NextResponse.json({ error: 'Question parameter is required' }, { status: 400 })
@@ -21,21 +22,21 @@ export async function GET(request: Request) {
         const daysToLookBack = validPeriods[periodKey]
         const startDate = subDays(new Date(), daysToLookBack)
 
-        // Find events that match the question text in metadata
-        // Note: The 'question' param passed here is the cleaned/extracted name from the stats API.
-        // We might need a loose match if the metadata structure varies, but let's try strict json path match first 
-        // or filtering in memory if volume is low. 
-        // Given we extract name in stats API using a helper, we should try to match that logic or use a broader search.
-        // For simplicity and performance, let's assume the question text passed is accurate enough or use basic text search on the metadata column if possible (Postgres JSONB support).
-        // Since Prisma + JSON filtering can be tricky with complex structures, we'll fetch feedback events and filter effectively.
-        // However, fetching ALL feedback events might be heavy. 
-        // Let's rely on the fact that we look for 'feedback_yes' or 'feedback_no'.
+        const eventFilter = language !== 'all'
+            ? {
+                OR: [
+                    { metadata: { path: ['language'], equals: language } },
+                    { user: { language: language } }
+                ]
+            }
+            : undefined
 
         const feedbackEvents = await prisma.analyticsEvent.findMany({
             where: {
                 eventType: { in: ['feedback_yes', 'feedback_no'] },
                 createdAt: { gte: startDate },
-                user: { isNot: null } // Only interested in users with accounts (though anonymous sessions might exist, user asked for usernames)
+                user: { isNot: null },
+                ...eventFilter
             },
             include: {
                 user: {

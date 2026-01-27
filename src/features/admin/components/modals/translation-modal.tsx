@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Languages } from "lucide-react"
-import RichTextEditor from "@/components/rich-text-editor"
+import RichTextEditor from "@/features/admin/components/ui/rich-text-editor"
 import { AVAILABLE_LANGUAGES, TranslatedString } from "../../types"
 
 interface TranslationModalProps {

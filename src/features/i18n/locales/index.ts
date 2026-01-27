@@ -1,4 +1,4 @@
-import type { Locale } from "@/src/types"
+import type { Locale } from "@/types"
 
 // Import all locale JSON files
 import azCommon from "./az/common.json"

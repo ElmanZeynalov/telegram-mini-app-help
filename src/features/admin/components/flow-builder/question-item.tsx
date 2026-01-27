@@ -19,8 +19,8 @@ import {
     TooltipProvider,
     TooltipTrigger
 } from "@/components/ui/tooltip"
-import MarkdownPreview from "@/components/markdown-preview"
-import RichTextEditor from "@/components/rich-text-editor"
+import MarkdownPreview from "@/features/admin/components/ui/markdown-preview"
+import RichTextEditor from "@/features/admin/components/ui/rich-text-editor"
 import { TranslationBadge } from "../ui/translation-badge"
 import { Question, ActivePanel, AVAILABLE_LANGUAGES, TranslatedString } from "../../types"
 import { t } from "../../utils"

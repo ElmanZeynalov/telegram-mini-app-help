@@ -5,8 +5,8 @@ import type React from "react"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import { useLegalGuidance } from "../../hooks/use-legal-guidance"
-import { useTelegram } from "@/src/features/telegram"
-import { useAnalytics } from "@/src/features/analytics/context/analytics-context"
+import { useTelegram } from "@/features/telegram"
+import { useAnalytics } from "@/features/analytics/context/analytics-context"
 
 interface NavigableContentLayoutProps {
   children: React.ReactNode

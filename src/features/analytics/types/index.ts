@@ -13,6 +13,16 @@ export interface SafetyStat {
     totalEmergencyExits: number
     totalSessions: number
     totalUsers: number
+    emergencyExitUsers?: {
+        user: {
+            id: string
+            firstName: string | null
+            lastName: string | null
+            username: string | null
+            telegramId: string | null
+        } | undefined
+        count: number
+    }[]
 }
 
 export interface RegionStat {

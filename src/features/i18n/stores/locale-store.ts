@@ -1,8 +1,8 @@
 import { create } from "zustand"
 import type { LocaleStore } from "../types"
-import type { Locale, TranslatedString } from "@/src/types"
+import type { Locale, TranslatedString } from "@/types"
 import { translations } from "../locales"
-import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from "@/src/config/constants"
+import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from "@/config/constants"
 import {
   initDataUser,
   cloudStorage,

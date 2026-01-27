@@ -1,7 +1,8 @@
 "use client"
 
 import React, { createContext, useContext, useEffect, useRef, useState } from "react"
-import { useTelegram } from "@/src/features/telegram/hooks/use-telegram"
+import { useTelegram } from "@/features/telegram/hooks/use-telegram"
+import { useLocaleStore } from "@/features/i18n/stores/locale-store"
 
 interface AnalyticsContextType {
     track: (eventType: string, metadata?: any) => void
@@ -20,6 +21,7 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
     const user = webApp?.initDataUnsafe?.user
     const [sessionId, setSessionId] = useState<string | null>(null)
     const isTrackingInitialized = useRef(false)
+    const locale = useLocaleStore((state) => state.locale)
 
     // Initialize Session
     useEffect(() => {
@@ -45,7 +47,8 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
                         existingSessionId: storedSessionId || undefined,
                         firstName: user?.first_name,
                         lastName: user?.last_name,
-                        username: user?.username
+                        username: user?.username,
+                        metadata: { language: locale } // Inject language
                     }),
                 })
 
@@ -88,7 +91,10 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
                     sessionId: currentSessionId,
                     existingSessionId: currentSessionId,
                     telegramId: activeId,
-                    metadata,
+                    metadata: {
+                        ...metadata,
+                        language: locale
+                    },
                     region: metadata?.region || undefined
                 }),
             })

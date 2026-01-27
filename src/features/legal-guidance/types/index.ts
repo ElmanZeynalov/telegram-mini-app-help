@@ -1,5 +1,5 @@
 // Legal Guidance feature types
-import type { TranslatedString } from "@/src/types"
+import type { TranslatedString } from "@/types"
 
 export interface Language {
   code: "az" | "ru" | "en"

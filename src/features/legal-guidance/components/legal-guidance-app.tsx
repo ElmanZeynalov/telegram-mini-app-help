@@ -6,8 +6,8 @@ import { CategoriesScreen } from "./screens/categories-screen"
 import { QuestionsScreen } from "./screens/questions-screen"
 import { AnswerScreen } from "./screens/answer-screen"
 import { AnimatePresence, motion } from "framer-motion"
-import { useTelegramBackButton, useTelegramHaptic } from "@/src/features/telegram"
-import { useAnalytics } from "@/src/features/analytics/context/analytics-context"
+import { useTelegramBackButton, useTelegramHaptic } from "@/features/telegram"
+import { useAnalytics } from "@/features/analytics/context/analytics-context"
 
 import { useEffect } from "react"
 

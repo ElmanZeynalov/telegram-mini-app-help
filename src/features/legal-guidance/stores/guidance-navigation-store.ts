@@ -1,6 +1,6 @@
 import { create } from "zustand"
 import type { GuidanceNavigationStore, GuidanceNavigationState, Screen, Category, Question } from "../types"
-import { useLocaleStore } from "@/src/features/i18n/stores/locale-store"
+import { useLocaleStore } from "@/features/i18n/stores/locale-store"
 const initialState: GuidanceNavigationState = {
   data: {
     version: "1.0.0",

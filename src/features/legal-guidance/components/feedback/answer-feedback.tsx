@@ -3,8 +3,8 @@
 import { useState } from "react"
 import { ThumbsUp, ThumbsDown, Sparkles } from "lucide-react"
 import { useLegalGuidance } from "../../hooks/use-legal-guidance"
-import { useTelegramHaptic } from "@/src/features/telegram"
-import { useAnalytics } from "@/src/features/analytics/context/analytics-context"
+import { useTelegramHaptic } from "@/features/telegram"
+import { useAnalytics } from "@/features/analytics/context/analytics-context"
 
 type FeedbackState = "idle" | "positive" | "negative" | "submitted"
 

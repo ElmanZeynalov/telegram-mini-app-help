@@ -26,39 +26,112 @@ export async function GET(request: Request) {
         // If "all", no filter. If specific language, try to match metadata.language
         const eventFilter = language !== 'all'
             ? {
-                AND: [
-                    { metadata: { path: ['language'], equals: language } }
+                OR: [
+                    { metadata: { path: ['language'], equals: language } },
+                    { user: { language: language } }
                 ]
             }
             : undefined
 
-        // 1. Daily Active Users
-        const recentSessions = await prisma.session.findMany({
-            where: {
-                startTime: {
-                    gte: startDate
-                },
-                ...sessionFilter
-            },
-            select: {
-                startTime: true,
-                userId: true
-            }
-        })
-
-        // 1.1 New Users (Created in period)
         const userFilter = language !== 'all' ? { language: language } : undefined
-        const newUsersData = await prisma.user.findMany({
-            where: {
-                createdAt: {
-                    gte: startDate
+        const regionFilter = language !== 'all' ? { language: language } : undefined
+
+        // Prepare all queries to run in parallel
+        const filterOptions = {
+            session: {
+                where: {
+                    startTime: { gte: startDate },
+                    ...sessionFilter
                 },
-                ...userFilter
+                select: { startTime: true, userId: true }
             },
-            select: {
-                createdAt: true
+            newUser: {
+                where: {
+                    createdAt: { gte: startDate },
+                    ...userFilter
+                },
+                select: { createdAt: true }
+            },
+            viewCategory: {
+                where: {
+                    eventType: 'view_category',
+                    createdAt: { gte: startDate },
+                    ...eventFilter
+                },
+                select: { metadata: true }
+            },
+            viewQuestion: {
+                where: {
+                    eventType: 'view_question',
+                    createdAt: { gte: startDate },
+                    ...eventFilter
+                },
+                select: { metadata: true }
+            },
+            emergencyExitCount: {
+                where: {
+                    eventType: 'emergency_exit',
+                    ...eventFilter
+                }
+            },
+            emergencyExitGroup: {
+                by: ['userId'],
+                where: {
+                    eventType: 'emergency_exit',
+                    createdAt: { gte: startDate },
+                    ...eventFilter
+                },
+                _count: { userId: true },
+                orderBy: { _count: { userId: 'desc' as const } },
+                take: 20
+            },
+            totalSessions: {
+                where: { ...sessionFilter }
+            },
+            totalUsers: {
+                where: { ...userFilter }
+            },
+            regions: {
+                by: ['region'],
+                _count: { region: true },
+                where: {
+                    region: { not: null, notIn: ['az', 'ru', 'en'] },
+                    ...regionFilter
+                }
+            },
+            feedback: {
+                where: {
+                    eventType: { in: ['feedback_yes', 'feedback_no'] },
+                    createdAt: { gte: startDate },
+                    ...eventFilter
+                },
+                select: { eventType: true, metadata: true }
             }
-        })
+        }
+
+        const [
+            recentSessions,
+            newUsersData,
+            viewEvents,
+            questionEvents,
+            emergencyExits,
+            emergencyExitUsersGroup,
+            totalSessions,
+            totalUsers,
+            regionGroups,
+            feedbackEvents
+        ] = await Promise.all([
+            prisma.session.findMany(filterOptions.session),
+            prisma.user.findMany(filterOptions.newUser),
+            prisma.analyticsEvent.findMany(filterOptions.viewCategory),
+            prisma.analyticsEvent.findMany(filterOptions.viewQuestion),
+            prisma.analyticsEvent.count(filterOptions.emergencyExitCount),
+            prisma.analyticsEvent.groupBy(filterOptions.emergencyExitGroup),
+            prisma.session.count(filterOptions.totalSessions),
+            prisma.user.count(filterOptions.totalUsers),
+            prisma.user.groupBy(filterOptions.regions),
+            prisma.analyticsEvent.findMany(filterOptions.feedback)
+        ])
 
         const dailyStats: Record<string, { active: number, new: number }> = {}
         // Initialize days with 0
@@ -100,18 +173,6 @@ export async function GET(request: Request) {
             return String(val)
         }
 
-        // 2. Content Interest (Top Categories)
-        const viewEvents = await prisma.analyticsEvent.findMany({
-            where: {
-                eventType: 'view_category',
-                createdAt: { gte: startDate },
-                ...eventFilter
-            },
-            select: {
-                metadata: true
-            }
-        })
-
         const categoryCounts: Record<string, number> = {}
         viewEvents.forEach((event: any) => {
             const rawName = event.metadata?.name
@@ -123,18 +184,6 @@ export async function GET(request: Request) {
             .map(([name, views]) => ({ name, views }))
             .sort((a, b) => b.views - a.views)
             .slice(0, 50)
-
-        // 3. Top Questions
-        const questionEvents = await prisma.analyticsEvent.findMany({
-            where: {
-                eventType: 'view_question',
-                createdAt: { gte: startDate },
-                ...eventFilter
-            },
-            select: {
-                metadata: true
-            }
-        })
 
         const questionCounts: Record<string, number> = {}
         questionEvents.forEach((event: any) => {
@@ -149,62 +198,28 @@ export async function GET(request: Request) {
             .sort((a, b) => b.views - a.views)
             .slice(0, 50)
 
-        // 3. Drop-off / Flow
-        const emergencyExits = await prisma.analyticsEvent.count({
-            where: {
-                eventType: 'emergency_exit',
-                ...eventFilter
-            }
+        // Process Emergency Exit Users
+        const userIds = emergencyExitUsersGroup.map(g => g.userId).filter(id => id !== null) as string[]
+        // We need to fetch details for these users
+        const users = await prisma.user.findMany({
+            where: { id: { in: userIds } },
+            select: { id: true, firstName: true, lastName: true, username: true, telegramId: true }
         })
 
-        const totalSessions = await prisma.session.count({
-            where: {
-                ...sessionFilter
+        const emergencyExitUsers = emergencyExitUsersGroup.map(g => {
+            if (!g.userId) return null
+            const user = users.find(u => u.id === g.userId)
+            return {
+                user,
+                count: (g as any)._count?.userId || 0
             }
-        })
+        }).filter(item => item !== null)
 
-        const totalUsers = await prisma.user.count({
-            where: {
-                ...userFilter
-            }
-        })
-
-        // 4. Region Distribution (If language filter ON, this chart will show 100% one region)
-        // But logic is fine.
-        // 4. Region Distribution (Cities)
-        const regionFilter = language !== 'all' ? { language: language } : undefined
-
-        const regionGroups = await prisma.user.groupBy({
-            by: ['region'],
-            _count: {
-                region: true
-            },
-            where: {
-                region: {
-                    not: null,
-                    // Filter out legacy language codes that might be stored in 'region'
-                    notIn: ['az', 'ru', 'en']
-                },
-                ...regionFilter
-            }
-        })
+        // Process Region Data
         const regionData = regionGroups.map(g => ({
             name: g.region || 'Unknown',
-            value: g._count.region
+            value: (g as any)._count?.region || 0
         }))
-
-        // 5. Feedback Stats
-        const feedbackEvents = await prisma.analyticsEvent.findMany({
-            where: {
-                eventType: { in: ['feedback_yes', 'feedback_no'] },
-                createdAt: { gte: startDate },
-                ...eventFilter
-            },
-            select: {
-                eventType: true,
-                metadata: true
-            }
-        })
 
         const feedbackMap: Record<string, { yes: number, no: number }> = {}
 
@@ -231,7 +246,8 @@ export async function GET(request: Request) {
             safety: {
                 totalEmergencyExits: emergencyExits,
                 totalSessions,
-                totalUsers
+                totalUsers,
+                emergencyExitUsers
             },
             regions: regionData
         })

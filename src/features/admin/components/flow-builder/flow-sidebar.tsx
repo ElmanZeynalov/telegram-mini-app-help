@@ -12,8 +12,10 @@ import {
     ArrowUp,
     ArrowDown,
     Pencil,
-    Trash2
+    Trash2,
+    BarChart2
 } from "lucide-react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -112,6 +114,12 @@ export function FlowSidebar({
                         <FolderTree className="w-5 h-5 text-primary" />
                         Flow Builder
                     </h1>
+                    <Link href="/stats">
+                        <Button variant="default" size="sm" className="gap-2 bg-blue-600 hover:bg-blue-700 text-white shadow-sm">
+                            <BarChart2 className="w-4 h-4" />
+                            Analytics
+                        </Button>
+                    </Link>
                 </div>
 
                 {/* Language Selector */}
@@ -306,8 +314,8 @@ export function FlowSidebar({
                                 ) : (
                                     <div
                                         className={`group flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${isSelected
-                                                ? "bg-primary/20 text-primary"
-                                                : "hover:bg-muted text-muted-foreground hover:text-foreground"
+                                            ? "bg-primary/20 text-primary"
+                                            : "hover:bg-muted text-muted-foreground hover:text-foreground"
                                             }`}
                                     >
                                         <div className="flex items-center gap-1">

@@ -1,5 +1,5 @@
 // i18n feature types
-import type { Locale } from "@/src/types"
+import type { Locale } from "@/types"
 
 export interface Language {
   code: Locale

@@ -12,7 +12,7 @@ import {
   retrieveLaunchParams,
 } from "@telegram-apps/sdk-react"
 import { TelegramContext, type TelegramContextValue } from "../context/telegram-context"
-import { useLocaleStore } from "@/src/features/i18n/stores/locale-store"
+import { useLocaleStore } from "@/features/i18n/stores/locale-store"
 
 export interface TelegramProviderProps extends PropsWithChildren {
   /**

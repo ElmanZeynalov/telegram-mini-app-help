@@ -1,5 +1,5 @@
 // Global configurations and constants
-import type { Locale } from "@/src/types"
+import type { Locale } from "@/types"
 
 export const APP_CONFIG = {
   name: "Legal Help",

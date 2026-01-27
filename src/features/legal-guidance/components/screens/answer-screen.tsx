@@ -7,7 +7,7 @@ import { FileQuestion, RotateCcw } from "lucide-react"
 import ReactMarkdown from "react-markdown"
 import { AnswerFeedback } from "../feedback/answer-feedback"
 
-import { useTelegram } from "@/src/features/telegram/hooks/use-telegram"
+import { useTelegram } from "@/features/telegram/hooks/use-telegram"
 import { processEmojiChildren } from "../../utils/emoji-utils"
 
 export function AnswerScreen() {

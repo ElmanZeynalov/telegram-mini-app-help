@@ -25,15 +25,15 @@ import {
   AlertCircle
 } from "lucide-react"
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import RichTextEditor from "@/components/rich-text-editor"
-import MarkdownPreview from "@/components/markdown-preview"
-import { ConfirmDialog } from "@/components/confirm-dialog"
+import RichTextEditor from "@/features/admin/components/ui/rich-text-editor"
+import MarkdownPreview from "@/features/admin/components/ui/markdown-preview"
+import { ConfirmDialog } from "@/features/admin/components/ui/confirm-dialog"
 import { toast } from "sonner"
-import { TranslationBadge } from "@/src/features/admin/components/ui/translation-badge"
-import { FlowSidebar } from "@/src/features/admin/components/flow-builder/flow-sidebar"
-import { TranslationModal } from "@/src/features/admin/components/modals/translation-modal"
-import { FlowHeader } from "@/src/features/admin/components/flow-builder/flow-header"
-import { QuestionList } from "@/src/features/admin/components/flow-builder/question-list"
+import { TranslationBadge } from "@/features/admin/components/ui/translation-badge"
+import { FlowSidebar } from "@/features/admin/components/flow-builder/flow-sidebar"
+import { TranslationModal } from "@/features/admin/components/modals/translation-modal"
+import { FlowHeader } from "@/features/admin/components/flow-builder/flow-header"
+import { QuestionList } from "@/features/admin/components/flow-builder/question-list"
 import {
   AVAILABLE_LANGUAGES,
   TranslatedString,
@@ -41,11 +41,11 @@ import {
   Question,
   Breadcrumb,
   ActivePanel
-} from "@/src/features/admin/types"
-import { getTranslationStatus, t, updateQuestionRecursively } from "@/src/features/admin/utils"
-import { useFlowData } from "@/src/features/admin/hooks/use-flow-data"
-import { useFlowActions } from "@/src/features/admin/hooks/use-flow-actions"
-import { useDragDrop } from "@/src/features/admin/hooks/use-drag-drop"
+} from "@/features/admin/types"
+import { getTranslationStatus, t, updateQuestionRecursively } from "@/features/admin/utils"
+import { useFlowData } from "@/features/admin/hooks/use-flow-data"
+import { useFlowActions } from "@/features/admin/hooks/use-flow-actions"
+import { useDragDrop } from "@/features/admin/hooks/use-drag-drop"
 
 
 function FlowBuilderContent() {

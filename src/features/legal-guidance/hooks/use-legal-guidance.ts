@@ -1,6 +1,6 @@
 "use client"
 
-import { useLocaleStore } from "@/src/features/i18n/stores/locale-store"
+import { useLocaleStore } from "@/features/i18n/stores/locale-store"
 import { useGuidanceNavigationStore } from "../stores/guidance-navigation-store"
 import { useCallback } from "react"
 import type { Category, Question } from "../types"

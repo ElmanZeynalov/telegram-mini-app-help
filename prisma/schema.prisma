@@ -77,6 +77,10 @@ model User {
   updatedAt DateTime @updatedAt
   sessions  Session[]
   events    AnalyticsEvent[]
+
+  @@index([createdAt])
+  @@index([region])
+  @@index([language])
 }
 
 model Session {
@@ -86,6 +90,9 @@ model Session {
   endTime   DateTime?
   user      User?    @relation(fields: [userId], references: [id])
   events    AnalyticsEvent[]
+
+  @@index([startTime])
+  @@index([userId])
 }
 
 model AnalyticsEvent {
@@ -99,4 +106,9 @@ model AnalyticsEvent {
   
   userId    String?
   user      User?   @relation(fields: [userId], references: [id])
+
+  @@index([eventType, createdAt])
+  @@index([createdAt])
+  @@index([sessionId])
+  @@index([userId])
 }

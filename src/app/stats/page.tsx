@@ -1,16 +1,17 @@
 "use client"
 
 import { useState } from "react"
-import { useStats } from "@/src/features/analytics/hooks/use-stats"
-import { StatsHeader } from "@/src/features/analytics/components/stats-header"
-import { KPIGrid } from "@/src/features/analytics/components/kpi-grid"
-import { UsageChart } from "@/src/features/analytics/components/usage-chart"
-import { RegionChart } from "@/src/features/analytics/components/region-chart"
-import { ContentChart } from "@/src/features/analytics/components/content-chart"
-import { QuestionInterestChart } from "@/src/features/analytics/components/question-interest-chart"
-import { UserListTable } from "@/src/features/analytics/components/user-list-table"
-import { FeedbackStatsTable } from "@/src/features/analytics/components/feedback-stats-table"
-import { StatsPeriod } from "@/src/features/analytics/types"
+import { useStats } from "@/features/analytics/hooks/use-stats"
+import { StatsHeader } from "@/features/analytics/components/stats-header"
+import { KPIGrid } from "@/features/analytics/components/kpi-grid"
+import { UsageChart } from "@/features/analytics/components/usage-chart"
+import { RegionChart } from "@/features/analytics/components/region-chart"
+import { ContentChart } from "@/features/analytics/components/content-chart"
+import { QuestionInterestChart } from "@/features/analytics/components/question-interest-chart"
+import { UserListTable } from "@/features/analytics/components/user-list-table"
+import { FeedbackStatsTable } from "@/features/analytics/components/feedback-stats-table"
+import { EmergencyExitList } from "@/features/analytics/components/emergency-exit-list"
+import { StatsPeriod } from "@/features/analytics/types"
 
 export default function AnalyticsPage() {
     const [period, setPeriod] = useState<StatsPeriod>('7d')
@@ -76,8 +77,14 @@ export default function AnalyticsPage() {
                     className="col-span-1 md:col-span-1 lg:col-span-2"
                 />
 
-                <div className="col-span-1 md:col-span-3 lg:col-span-7">
-                    <UsageChart data={stats.usage} />
+                <div className="col-span-1 md:col-span-3 lg:col-span-7 grid grid-cols-1 lg:grid-cols-7 gap-4">
+                    <div className="lg:col-span-5">
+                        <UsageChart data={stats.usage} />
+                    </div>
+                    <EmergencyExitList
+                        users={stats.safety.emergencyExitUsers}
+                        className="lg:col-span-2 h-full"
+                    />
                 </div>
             </div>
 

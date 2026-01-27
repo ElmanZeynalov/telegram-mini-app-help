@@ -3,9 +3,9 @@
 import { Button } from "@/components/ui/button"
 import { useLegalGuidance } from "../../hooks/use-legal-guidance"
 import { ArrowRight } from "lucide-react"
-import { useAnalytics } from "@/src/features/analytics/context/analytics-context"
+import { useAnalytics } from "@/features/analytics/context/analytics-context"
 import { CenteredContentLayout } from "../layout/centered-content-layout"
-import { FeministIcon } from "@/src/assets/icons"
+import { FeministIcon } from "@/assets/icons"
 
 export function HomeScreen() {
   const { setScreen, t, setLocale } = useLegalGuidance()
