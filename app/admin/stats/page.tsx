@@ -9,12 +9,14 @@ import { RegionChart } from "@/src/features/analytics/components/region-chart"
 import { ContentChart } from "@/src/features/analytics/components/content-chart"
 import { QuestionInterestChart } from "@/src/features/analytics/components/question-interest-chart"
 import { UserListTable } from "@/src/features/analytics/components/user-list-table"
+import { FeedbackStatsTable } from "@/src/features/analytics/components/feedback-stats-table"
 import { StatsPeriod } from "@/src/features/analytics/types"
 
 export default function AnalyticsPage() {
     const [period, setPeriod] = useState<StatsPeriod>('7d')
     const [language, setLanguage] = useState<string>('all')
-    const { stats, loading, error } = useStats(period, language, 5000)
+    const [selectedRegion, setSelectedRegion] = useState<string | null>(null)
+    const { stats, loading, error, refetch } = useStats(period, language, 30000)
 
     const handleExport = () => {
         if (!stats) return
@@ -26,6 +28,8 @@ export default function AnalyticsPage() {
         downloadAnchorNode.click()
         downloadAnchorNode.remove()
     }
+
+    // ... loading and error states ...
 
     if (loading) {
         return (
@@ -51,6 +55,7 @@ export default function AnalyticsPage() {
                 language={language}
                 setLanguage={setLanguage}
                 onExport={handleExport}
+                onRefresh={refetch}
             />
 
             <KPIGrid
@@ -58,16 +63,30 @@ export default function AnalyticsPage() {
                 totalRegions={stats.regions.length}
             />
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                <UsageChart data={stats.usage} />
-                <RegionChart data={stats.regions} />
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-3 lg:grid-cols-7">
+                <UserListTable
+                    regionFilter={selectedRegion}
+                    onClearFilter={() => setSelectedRegion(null)}
+                    className="col-span-1 md:col-span-2 lg:col-span-5"
+                />
+                <RegionChart
+                    data={stats.regions}
+                    onRegionSelect={(region) => setSelectedRegion(region === selectedRegion ? null : region)}
+                    selectedRegion={selectedRegion}
+                    className="col-span-1 md:col-span-1 lg:col-span-2"
+                />
+
+                <div className="col-span-1 md:col-span-3 lg:col-span-7">
+                    <UsageChart data={stats.usage} />
+                </div>
             </div>
 
-            <ContentChart data={stats.content} />
-            <QuestionInterestChart data={stats.questions} />
+            <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
+                <ContentChart data={stats.content} className="col-span-1" />
+                <QuestionInterestChart data={stats.questions} className="col-span-1" />
+            </div>
 
-            <UserListTable />
+            <FeedbackStatsTable data={stats.feedback} />
         </div>
     )
 }
-

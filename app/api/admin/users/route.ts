@@ -3,7 +3,18 @@ import prisma from '@/lib/prisma'
 
 export async function GET(request: Request) {
     try {
+        const { searchParams } = new URL(request.url)
+        const region = searchParams.get('region')
+
+        const whereClause = region ? {
+            region: {
+                contains: region,
+                mode: 'insensitive' as const
+            }
+        } : {}
+
         const users = await prisma.user.findMany({
+            where: whereClause,
             orderBy: {
                 createdAt: 'desc'
             },

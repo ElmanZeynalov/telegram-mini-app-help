@@ -14,7 +14,7 @@ interface AnswerFeedbackProps {
 }
 
 export function AnswerFeedback({ questionId, questionText }: AnswerFeedbackProps) {
-  const { t } = useLegalGuidance()
+  const { t, locale } = useLegalGuidance()
   const haptic = useTelegramHaptic()
   const { track } = useAnalytics()
   const [state, setState] = useState<FeedbackState>("idle")
@@ -24,7 +24,8 @@ export function AnswerFeedback({ questionId, questionText }: AnswerFeedbackProps
 
     track("feedback_yes", {
       questionId,
-      questionText: questionText?.substring(0, 100) // Truncate if too long
+      questionText: questionText?.substring(0, 100), // Truncate if too long
+      language: locale || 'az'
     })
 
     setState("positive")
@@ -36,7 +37,8 @@ export function AnswerFeedback({ questionId, questionText }: AnswerFeedbackProps
 
     track("feedback_no", {
       questionId,
-      questionText: questionText?.substring(0, 100)
+      questionText: questionText?.substring(0, 100),
+      language: locale || 'az'
     })
 
     setState("negative")

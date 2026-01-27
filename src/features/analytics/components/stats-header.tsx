@@ -16,9 +16,10 @@ interface StatsHeaderProps {
     language: string
     setLanguage: (val: string) => void
     onExport: () => void
+    onRefresh: () => void
 }
 
-export function StatsHeader({ period, setPeriod, language, setLanguage, onExport }: StatsHeaderProps) {
+export function StatsHeader({ period, setPeriod, language, setLanguage, onExport, onRefresh }: StatsHeaderProps) {
     return (
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
@@ -49,6 +50,9 @@ export function StatsHeader({ period, setPeriod, language, setLanguage, onExport
                         <TabsTrigger value="90d">90 Days</TabsTrigger>
                     </TabsList>
                 </Tabs>
+                <Button variant="outline" size="sm" onClick={onRefresh} className="hidden sm:flex" title="Refresh Data">
+                    <span className="text-xl">↻</span>
+                </Button>
                 <Button variant="outline" size="sm" onClick={onExport} className="hidden sm:flex">
                     <Download className="mr-2 h-4 w-4" />
                     Export

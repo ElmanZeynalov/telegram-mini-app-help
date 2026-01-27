@@ -1,6 +1,7 @@
 export interface UsageStat {
     date: string
     users: number
+    newUsers?: number
 }
 
 export interface ContentStat {
@@ -11,6 +12,7 @@ export interface ContentStat {
 export interface SafetyStat {
     totalEmergencyExits: number
     totalSessions: number
+    totalUsers: number
 }
 
 export interface RegionStat {

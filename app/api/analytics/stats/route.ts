@@ -46,21 +46,48 @@ export async function GET(request: Request) {
             }
         })
 
-        const dailyStats: Record<string, number> = {}
-        // Initialize days with 0
-        for (let i = daysToLookBack - 1; i >= 0; i--) {
-            const dateStr = format(subDays(new Date(), i), 'MMM dd')
-            dailyStats[dateStr] = 0
-        }
-
-        recentSessions.forEach(session => {
-            const dateStr = format(new Date(session.startTime), 'MMM dd')
-            if (dailyStats[dateStr] !== undefined) {
-                dailyStats[dateStr]++
+        // 1.1 New Users (Created in period)
+        const userFilter = language !== 'all' ? { language: language } : undefined
+        const newUsersData = await prisma.user.findMany({
+            where: {
+                createdAt: {
+                    gte: startDate
+                },
+                ...userFilter
+            },
+            select: {
+                createdAt: true
             }
         })
 
-        const usageData = Object.entries(dailyStats).map(([date, users]) => ({ date, users }))
+        const dailyStats: Record<string, { active: number, new: number }> = {}
+        // Initialize days with 0
+        for (let i = daysToLookBack - 1; i >= 0; i--) {
+            const dateStr = format(subDays(new Date(), i), 'MMM dd')
+            dailyStats[dateStr] = { active: 0, new: 0 }
+        }
+
+        // Count Active Users (Sessions)
+        recentSessions.forEach(session => {
+            const dateStr = format(new Date(session.startTime), 'MMM dd')
+            if (dailyStats[dateStr]) {
+                dailyStats[dateStr].active++
+            }
+        })
+
+        // Count New Users (Registrations)
+        newUsersData.forEach(user => {
+            const dateStr = format(new Date(user.createdAt), 'MMM dd')
+            if (dailyStats[dateStr]) {
+                dailyStats[dateStr].new++
+            }
+        })
+
+        const usageData = Object.entries(dailyStats).map(([date, stats]) => ({
+            date,
+            users: stats.active,
+            newUsers: stats.new
+        }))
 
         // Helper to extract string from metadata (which might be translation object)
         const extractName = (val: any) => {
@@ -136,6 +163,12 @@ export async function GET(request: Request) {
             }
         })
 
+        const totalUsers = await prisma.user.count({
+            where: {
+                ...userFilter
+            }
+        })
+
         // 4. Region Distribution (If language filter ON, this chart will show 100% one region)
         // But logic is fine.
         // 4. Region Distribution (Cities)
@@ -197,7 +230,8 @@ export async function GET(request: Request) {
             feedback: feedbackData,
             safety: {
                 totalEmergencyExits: emergencyExits,
-                totalSessions
+                totalSessions,
+                totalUsers
             },
             regions: regionData
         })

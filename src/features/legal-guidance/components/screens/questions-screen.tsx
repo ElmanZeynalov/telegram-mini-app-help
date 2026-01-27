@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { useState, useEffect } from "react"
 import { useTelegram } from "@/src/features/telegram/hooks/use-telegram"
 import ReactMarkdown from "react-markdown"
+import { AnswerFeedback } from "../feedback/answer-feedback"
 import { Button } from "@/components/ui/button"
 
 export function QuestionsScreen() {
@@ -157,6 +158,12 @@ export function QuestionsScreen() {
                 )}
               </div>
             )}
+
+            {/* Feedback section for Parent Question */}
+            <AnswerFeedback
+              questionId={currentQuestion?.id}
+              questionText={currentQuestion?.question ? getText(currentQuestion.question) : undefined}
+            />
           </div>
         )}
 

@@ -6,13 +6,16 @@ import { RegionStat } from "../types"
 
 interface RegionChartProps {
     data: RegionStat[]
+    onRegionSelect?: (region: string) => void
+    selectedRegion?: string | null
+    className?: string
 }
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8']
 
-export function RegionChart({ data }: RegionChartProps) {
+export function RegionChart({ data, onRegionSelect, selectedRegion, className }: RegionChartProps) {
     return (
-        <Card className="col-span-3">
+        <Card className={className}>
             <CardHeader>
                 <CardTitle>User Cities</CardTitle>
             </CardHeader>
@@ -22,7 +25,14 @@ export function RegionChart({ data }: RegionChartProps) {
                         <div className="text-center text-muted-foreground pt-10">No city data available</div>
                     ) : (
                         data.map((item, index) => (
-                            <div key={index} className="flex justify-between items-center p-2 rounded-md hover:bg-muted/50 transition-colors border">
+                            <div
+                                key={index}
+                                onClick={() => onRegionSelect?.(item.name)}
+                                className={`flex justify-between items-center p-2 rounded-md transition-colors border cursor-pointer ${selectedRegion === item.name
+                                    ? "bg-primary/10 border-primary"
+                                    : "hover:bg-muted/50 border-transparent hover:border-border"
+                                    }`}
+                            >
                                 <span className="font-medium text-sm">{item.name}</span>
                                 <span className="font-bold text-primary">{item.value}</span>
                             </div>

@@ -9,9 +9,10 @@ import { ContentStat } from "../types"
 
 interface QuestionInterestChartProps {
     data: ContentStat[]
+    className?: string
 }
 
-export function QuestionInterestChart({ data }: QuestionInterestChartProps) {
+export function QuestionInterestChart({ data, className }: QuestionInterestChartProps) {
     // Sort by views descending
     const sortedData = [...data].sort((a, b) => b.views - a.views)
 
@@ -19,7 +20,7 @@ export function QuestionInterestChart({ data }: QuestionInterestChartProps) {
     const chartHeight = Math.max(300, sortedData.length * 60)
 
     return (
-        <Card className="col-span-4 transition-all duration-300 ease-in-out">
+        <Card className={`col-span-4 transition-all duration-300 ease-in-out ${className || ''}`}>
             <CardHeader>
                 <div className="flex items-center justify-between">
                     <CardTitle>Top Interest Questions</CardTitle>

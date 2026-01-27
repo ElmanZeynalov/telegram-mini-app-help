@@ -9,8 +9,9 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Loader2 } from "lucide-react"
+import { Loader2, X } from "lucide-react"
 import { format } from "date-fns"
+import { Button } from "@/components/ui/button"
 
 interface User {
     id: string
@@ -24,14 +25,25 @@ interface User {
     sessionCount: number
 }
 
-export function UserListTable() {
+interface UserListTableProps {
+    regionFilter?: string | null
+    onClearFilter?: () => void
+    className?: string
+}
+
+export function UserListTable({ regionFilter, onClearFilter, className }: UserListTableProps) {
     const [users, setUsers] = useState<User[]>([])
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const res = await fetch('/api/admin/users')
+                // Construct URL with region filter if present
+                const url = regionFilter
+                    ? `/api/admin/users?region=${encodeURIComponent(regionFilter)}`
+                    : '/api/admin/users'
+
+                const res = await fetch(url)
                 if (!res.ok) throw new Error('Failed to fetch users')
                 const data = await res.json()
                 setUsers(data)
@@ -42,18 +54,42 @@ export function UserListTable() {
             }
         }
 
-        // Initial fetch
+        // Fetch immediately when filter changes
+        setLoading(true)
         fetchUsers()
 
-        // Poll every 5 seconds
-        const interval = setInterval(fetchUsers, 5000)
+        // Poll every 30 seconds
+        const interval = setInterval(fetchUsers, 30000)
         return () => clearInterval(interval)
-    }, [])
+    }, [regionFilter]) // Re-run when regionFilter changes
 
     return (
-        <Card className="col-span-4 lg:col-span-7 transition-all duration-300 ease-in-out">
-            <CardHeader>
-                <CardTitle>Recent Users ({users.length})</CardTitle>
+        <Card className={`transition-all duration-300 ease-in-out ${className}`}>
+            <CardHeader className="flex flex-row items-center justify-between">
+                <div className="space-y-1">
+                    <CardTitle>
+                        {regionFilter
+                            ? `Users in ${regionFilter} (${users.length})`
+                            : `Recent Users (${users.length})`
+                        }
+                    </CardTitle>
+                    {regionFilter && (
+                        <p className="text-sm text-muted-foreground">
+                            filtered by location
+                        </p>
+                    )}
+                </div>
+                {regionFilter && (
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={onClearFilter}
+                        className="h-8 px-2 lg:px-3 text-muted-foreground hover:text-foreground"
+                    >
+                        <X className="mr-2 h-4 w-4" />
+                        Clear Filter
+                    </Button>
+                )}
             </CardHeader>
             <CardContent>
                 {loading ? (
