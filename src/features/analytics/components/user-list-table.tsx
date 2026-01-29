@@ -33,11 +33,14 @@ interface UserListTableProps {
     className?: string
 }
 
+import { UserDetailDialog } from "./user-detail-dialog"
+
 export function UserListTable({ regionFilter, onClearFilter, className }: UserListTableProps) {
     const [users, setUsers] = useState<User[]>([])
     const [loading, setLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState("")
     const [debouncedSearch] = useDebounce(searchQuery, 500)
+    const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -137,27 +140,23 @@ export function UserListTable({ regionFilter, onClearFilter, className }: UserLi
                                     </TableRow>
                                 ) : (
                                     users.map((user) => (
-                                        <TableRow key={user.id}>
+                                        <TableRow
+                                            key={user.id}
+                                            className="cursor-pointer hover:bg-muted/50"
+                                            onClick={() => setSelectedUserId(user.id)}
+                                        >
                                             <TableCell className="font-medium">
-                                                {user.firstName} {user.lastName}
+                                                <div>{user.firstName} {user.lastName}</div>
+                                                <div className="text-xs text-muted-foreground">
+                                                    @{user.username || 'No username'}
+                                                </div>
                                             </TableCell>
-                                            <TableCell>
-                                                {user.username ? `@${user.username}` : '-'}
-                                            </TableCell>
-                                            <TableCell>
-                                                {user.telegramId || 'N/A'}
-                                            </TableCell>
-                                            <TableCell>
-                                                {user.language?.toUpperCase() || '-'}
-                                            </TableCell>
-                                            <TableCell>
-                                                {user.region || '-'}
-                                            </TableCell>
-                                            <TableCell>
-                                                {user.sessionCount}
-                                            </TableCell>
-                                            <TableCell>
-                                                {format(new Date(user.createdAt), 'PP pp')}
+                                            <TableCell>{user.telegramId}</TableCell>
+                                            <TableCell>{user.region || '-'}</TableCell>
+                                            <TableCell>{user.language.toUpperCase()}</TableCell>
+                                            <TableCell className="text-right">{user.sessionCount}</TableCell>
+                                            <TableCell className="text-right">
+                                                {format(new Date(user.createdAt), "MMM d, yyyy")}
                                             </TableCell>
                                         </TableRow>
                                     ))
@@ -167,6 +166,11 @@ export function UserListTable({ regionFilter, onClearFilter, className }: UserLi
                     </div>
                 )}
             </CardContent>
+
+            <UserDetailDialog
+                userId={selectedUserId}
+                onClose={() => setSelectedUserId(null)}
+            />
         </Card >
     )
 }

@@ -72,6 +72,7 @@ export default function RootLayout({
         <script src="https://telegram.org/js/telegram-web-app.js" />
         {/* Immediately expand to fullscreen before React hydrates */}
         <script
+          suppressHydrationWarning
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
@@ -130,7 +131,10 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.variable} font-sans antialiased min-h-dvh tg-no-overscroll`}>
+      <body
+        suppressHydrationWarning
+        className={`${inter.variable} font-sans antialiased min-h-dvh tg-notification-container`}
+      >
         <TelegramProvider>
           <ThemeProvider
             attribute="class"

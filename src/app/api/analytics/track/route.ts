@@ -75,6 +75,15 @@ export async function POST(request: Request) {
             })
         }
 
+        // Handle Session End explicitly
+        if (eventType === 'session_end' && sessionId) {
+            await prisma.session.update({
+                where: { id: sessionId },
+                data: { endTime: new Date() }
+            })
+            // Allow fall-through to create the event record
+        }
+
         // 3. Log Event
         const event = await prisma.analyticsEvent.create({
             data: {

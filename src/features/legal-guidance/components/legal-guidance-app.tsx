@@ -25,10 +25,30 @@ export function LegalGuidanceApp() {
     // Only track if screen/content actually changes to avoid duplicates
     if (screen === 'categories') {
       track('view_categories', { language: locale })
-    } else if (screen === 'questions' && selectedCategory) {
-      track('view_category', { id: selectedCategory.id, name: selectedCategory.name, language: locale })
+    } else if (screen === 'questions') {
+      if (currentQuestion) {
+        // Viewing sub-questions of a parent question
+        track('view_question', {
+          id: currentQuestion.id,
+          question: getText(currentQuestion.question),
+          isParent: true, // Mark as parent/intermediate view
+          language: locale
+        })
+      } else if (selectedCategory) {
+        // Viewing root questions of a category
+        track('view_category', {
+          id: selectedCategory.id,
+          name: selectedCategory.name,
+          language: locale
+        })
+      }
     } else if (screen === 'answer' && currentQuestion) {
-      track('view_question', { id: currentQuestion.id, question: getText(currentQuestion.question), language: locale })
+      track('view_question', {
+        id: currentQuestion.id,
+        question: getText(currentQuestion.question),
+        isAnswer: true, // Mark as data/answer view
+        language: locale
+      })
     }
   }, [screen, selectedCategory, currentQuestion, track, getText, locale])
 

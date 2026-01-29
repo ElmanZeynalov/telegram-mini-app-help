@@ -34,17 +34,17 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
 
         const initSession = async () => {
             try {
-                // Check local storage for existing session
-                const storedSessionId = localStorage.getItem("analytics_session_id")
+                // DO NOT check local storage for existing session.
+                // We want a FRESH session on every app load (as requested: Open -> Start, Close -> End).
 
-                // Track 'session_start' which handles creation or linking
+                // Track 'session_start' which handles creation
                 const res = await fetch("/api/analytics/track", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         eventType: "session_start",
                         telegramId: user?.id ? String(user.id) : undefined,
-                        existingSessionId: storedSessionId || undefined,
+                        // existingSessionId: undefined, // Always force new
                         firstName: user?.first_name,
                         lastName: user?.last_name,
                         username: user?.username,
@@ -56,7 +56,7 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
                     const data = await res.json()
                     if (data.sessionId) {
                         setSessionId(data.sessionId)
-                        localStorage.setItem("analytics_session_id", data.sessionId)
+                        // Do NOT save to localStorage
                     }
                 }
             } catch (e) {
@@ -65,7 +65,39 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
         }
 
         initSession()
-    }, [isTelegramInitialized, user])
+
+        // Handle Session End on Unload / Hide
+        const handleSessionEnd = () => {
+            if (!sessionId) return
+
+            // Use fetch with keepalive: true instead of sendBeacon for better JSON support
+            fetch('/api/analytics/track', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    eventType: 'session_end',
+                    existingSessionId: sessionId,
+                    telegramId: user?.id ? String(user.id) : undefined
+                }),
+                keepalive: true
+            }).catch(console.error);
+        }
+
+        const onVisibilityChange = () => {
+            if (document.visibilityState === 'hidden') {
+                handleSessionEnd()
+            }
+        }
+
+        // We use visibilitychange because mostly on mobile/Telegram closing the mini app might not trigger pagehide/unload reliably
+        // but 'hidden' is a good proxy for "User left the app".
+        // Note: This might trigger if they just switch tabs, but strict "Close App" in Telegram usually kills the webview.
+        document.addEventListener('visibilitychange', onVisibilityChange)
+
+        return () => {
+            document.removeEventListener('visibilitychange', onVisibilityChange)
+        }
+    }, [isTelegramInitialized, user, sessionId])
 
     const track = async (eventType: string, metadata?: any) => {
         try {
@@ -73,8 +105,8 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
                 // If session not ready, maybe queue? For MVP, skip or try best effort with local storage
             }
 
-            // Use current state sessionId or fallback to local storage one if state not yet updated
-            const currentSessionId = sessionId || localStorage.getItem("analytics_session_id")
+            // Use current state sessionId only (Ephemeral session)
+            const currentSessionId = sessionId; // || localStorage.getItem("analytics_session_id")
 
             // Use Telegram ID if checking TWA, otherwise use Guest ID
             const activeId = user?.id ? String(user.id) : (localStorage.getItem("guest_analytics_id") || (() => {
