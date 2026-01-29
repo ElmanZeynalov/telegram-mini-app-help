@@ -93,7 +93,7 @@ export default function RootLayout({
                       try {
                           tg.requestFullscreen();
                       } catch (e) {
-                          console.log('Fullscreen not supported in this version');
+
                       }
                     }
                     

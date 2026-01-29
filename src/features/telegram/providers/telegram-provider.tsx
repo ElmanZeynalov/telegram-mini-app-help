@@ -73,11 +73,7 @@ function expandImmediately() {
       webApp.disableVerticalSwipes()
     }
 
-    console.log("[Telegram] Initialized:", {
-      isExpanded: webApp.isExpanded,
-      platform: webApp.platform,
-      version: webApp.version,
-    })
+
   } catch (e) {
     console.warn("[Telegram] Early expand failed:", e)
   }

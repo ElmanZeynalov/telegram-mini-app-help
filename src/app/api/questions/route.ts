@@ -1,6 +1,7 @@
 
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
+import { Prisma } from "@prisma/client"
 
 export const dynamic = 'force-dynamic'
 
@@ -10,7 +11,7 @@ export async function GET(request: Request) {
     const parentId = searchParams.get('parentId')
 
     try {
-        const where: any = {}
+        const where: Prisma.QuestionWhereInput = {}
         if (categoryId) where.categoryId = categoryId
         if (parentId) where.parentId = parentId
         else if (categoryId) where.parentId = null // Get root questions for category
@@ -28,16 +29,20 @@ export async function GET(request: Request) {
             },
         })
 
+        type QuestionWithRelations = Prisma.QuestionGetPayload<{
+            include: { translations: true, subQuestions: { include: { translations: true } } }
+        }>
+
         // Helper to format question
-        const formatQuestion = (q: any) => ({
+        const formatQuestion = (q: QuestionWithRelations): any => ({
             ...q,
-            question: q.translations.reduce((acc: any, t: any) => ({ ...acc, [t.language]: t.question }), {}),
-            answer: q.translations.reduce((acc: any, t: any) => ({ ...acc, [t.language]: t.answer }), {}),
-            attachments: q.translations.reduce((acc: any, t: any) => ({
+            question: q.translations.reduce((acc: Record<string, string>, t) => ({ ...acc, [t.language]: t.question }), {}),
+            answer: q.translations.reduce((acc: Record<string, string | null>, t) => ({ ...acc, [t.language]: t.answer }), {}),
+            attachments: q.translations.reduce((acc: Record<string, { url: string, name: string } | null>, t) => ({
                 ...acc,
-                [t.language]: t.attachmentUrl ? { url: t.attachmentUrl, name: t.attachmentName } : null
+                [t.language]: t.attachmentUrl ? { url: t.attachmentUrl, name: t.attachmentName || 'Attachment' } : null
             }), {}),
-            subQuestions: q.subQuestions?.map(formatQuestion) || []
+            subQuestions: q.subQuestions?.map((sq) => formatQuestion(sq as unknown as QuestionWithRelations)) || []
         })
 
         return NextResponse.json(questions.map(formatQuestion))
@@ -102,7 +107,7 @@ export async function PUT(request: Request) {
         const { id, translations } = body
 
         if (translations) {
-            console.log("PUT Payload Translations:", JSON.stringify(translations, null, 2))
+
             // Fetch existing translations to find a fallback title (e.g. AZ)
             const existingQ = await prisma.question.findUnique({
                 where: { id },

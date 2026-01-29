@@ -51,7 +51,7 @@ async function saveToCloudStorage(locale: Locale): Promise<void> {
   try {
     if (isCloudStorageSupported()) {
       await cloudStorage.setItem(CLOUD_STORAGE_KEY, locale)
-      console.log("[Locale] Saved to Telegram Cloud Storage:", locale)
+
     }
   } catch (e) {
     console.warn("[Locale] Failed to save to Cloud Storage:", e)
@@ -66,7 +66,7 @@ async function loadFromCloudStorage(): Promise<Locale | null> {
     if (isCloudStorageSupported()) {
       const saved = await cloudStorage.getItem(CLOUD_STORAGE_KEY)
       if (saved && SUPPORTED_LOCALES.includes(saved as Locale)) {
-        console.log("[Locale] Loaded from Telegram Cloud Storage:", saved)
+
         return saved as Locale
       }
     }
@@ -110,12 +110,12 @@ export const useLocaleStore = create<LocaleStore>()((set, get) => ({
     if (hasInitialized) return
     hasInitialized = true
 
-    console.log("[Locale] Starting initialization...")
+
 
     // First, try to load from Telegram Cloud Storage
     const savedLocale = await loadFromCloudStorage()
     if (savedLocale) {
-      console.log("[Locale] Using saved preference from Cloud Storage:", savedLocale)
+
       set({ locale: savedLocale })
       return
     }
@@ -124,11 +124,11 @@ export const useLocaleStore = create<LocaleStore>()((set, get) => ({
     try {
       // Try SDK's initDataUser signal
       const user = initDataUser()
-      console.log("[Locale] SDK initDataUser:", user)
+
 
       if (user?.language_code) {
         const telegramLocale = getSupportedLocale(user.language_code)
-        console.log("[Locale] Detected language:", user.language_code, "-> Mapped to:", telegramLocale)
+
         set({ locale: telegramLocale })
         saveToCloudStorage(telegramLocale)
         return
@@ -136,18 +136,18 @@ export const useLocaleStore = create<LocaleStore>()((set, get) => ({
 
       // Fallback: Try native Telegram WebApp API
       const webAppUser = window.Telegram?.WebApp?.initDataUnsafe?.user as { language_code?: string } | undefined
-      console.log("[Locale] WebApp initDataUnsafe.user:", webAppUser)
+
 
       if (webAppUser?.language_code) {
         const telegramLocale = getSupportedLocale(webAppUser.language_code)
-        console.log("[Locale] Detected from WebApp:", webAppUser.language_code, "-> Mapped to:", telegramLocale)
+
         set({ locale: telegramLocale })
         saveToCloudStorage(telegramLocale)
         return
       }
 
       // No language detected, use default
-      console.log("[Locale] No language detected, using default:", DEFAULT_LOCALE)
+      // No language detected, using default
       set({ locale: DEFAULT_LOCALE })
     } catch (e) {
       console.warn("[Locale] Failed to detect language, using default:", e)

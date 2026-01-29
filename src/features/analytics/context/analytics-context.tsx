@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useEffect, useRef, useState } from "react"
+import React, { createContext, useContext, useEffect, useRef, useState, useCallback, useMemo } from "react"
 import { useTelegram } from "@/features/telegram/hooks/use-telegram"
 import { useLocaleStore } from "@/features/i18n/stores/locale-store"
 
@@ -99,7 +99,7 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
         }
     }, [isTelegramInitialized, user, sessionId])
 
-    const track = async (eventType: string, metadata?: any) => {
+    const track = useCallback(async (eventType: string, metadata?: any) => {
         try {
             if (!sessionId) {
                 // If session not ready, maybe queue? For MVP, skip or try best effort with local storage
@@ -136,10 +136,12 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
         } catch (e) {
             console.error("Track error:", e)
         }
-    }
+    }, [sessionId, user, locale])
+
+    const value = useMemo(() => ({ track, sessionId }), [track, sessionId])
 
     return (
-        <AnalyticsContext.Provider value={{ track, sessionId }}>
+        <AnalyticsContext.Provider value={value}>
             {children}
         </AnalyticsContext.Provider>
     )

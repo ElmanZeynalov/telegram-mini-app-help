@@ -39,7 +39,7 @@ export function NavigableContentLayout({ children, footer }: NavigableContentLay
         try {
           window.close()
         } catch (e) {
-          console.log("Cannot close window", e)
+          console.error("Cannot close window", e)
         }
         // Fallback: Return to main language screen (Restart app)
         goHome()
