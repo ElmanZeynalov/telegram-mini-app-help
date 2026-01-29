@@ -189,20 +189,18 @@ export function UserDetailDialog({ userId, onClose }: UserDetailDialogProps) {
                                                     const sessionDate = processedEvents[processedEvents.length - 1].createdAt;
                                                     const isLastSession = sessionIndex === sortedSessionIds.length - 1;
 
+                                                    const sessionNumber = sortedSessionIds.length - sessionIndex;
+
                                                     return (
-                                                        <div key={sessionId} className="relative pl-6">
-                                                            {/* Session Connector Line */}
-                                                            {!isLastSession && (
-                                                                <div className="absolute left-[30px] top-8 bottom-[-32px] w-px bg-border/60" />
-                                                            )}
+                                                        <div key={sessionId} className="relative mb-8 rounded-xl border-2 bg-card shadow-md overflow-hidden">
 
                                                             {/* Session Header */}
-                                                            <div className="flex items-center gap-3 mb-6 relative z-10">
-                                                                <div className="h-8 w-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-sm ring-4 ring-background">
-                                                                    <Clock className="w-4 h-4" />
+                                                            <div className="flex items-center gap-3 border-b p-4 bg-muted/30">
+                                                                <div className="h-10 w-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-sm">
+                                                                    <span className="font-bold text-sm">#{sessionNumber}</span>
                                                                 </div>
                                                                 <div>
-                                                                    <div className="text-sm font-semibold text-foreground">Session Started</div>
+                                                                    <div className="text-sm font-bold text-foreground">Session Started</div>
                                                                     <div className="text-xs text-muted-foreground font-mono">
                                                                         {format(new Date(sessionDate), "PPP p")}
                                                                     </div>
@@ -210,9 +208,9 @@ export function UserDetailDialog({ userId, onClose }: UserDetailDialogProps) {
                                                             </div>
 
                                                             {/* Events Stacking */}
-                                                            <div className="space-y-0 relative pl-0">
+                                                            <div className="space-y-0 relative pl-2 p-4 pt-6">
                                                                 {/* Vertical Line for Events within Session */}
-                                                                <div className="absolute left-[15px] top-0 bottom-4 w-px bg-border/60" />
+                                                                <div className="absolute left-[29px] top-4 bottom-8 w-px bg-border/60" />
 
                                                                 {processedEvents.map((event: any, index: number) => {
                                                                     const isCategory = event.eventType === 'view_category';
@@ -250,7 +248,7 @@ export function UserDetailDialog({ userId, onClose }: UserDetailDialogProps) {
                                                                     return (
                                                                         <div key={event.id} className="relative pl-10 py-2 group">
                                                                             {/* Event Icon */}
-                                                                            <div className={`absolute left-[7px] top-3 h-4 w-4 rounded-full ${iconColor} border flex items-center justify-center ring-4 ring-background z-10 transition-transform group-hover:scale-110`}>
+                                                                            <div className={`absolute left-[21px] top-3 h-4 w-4 rounded-full ${iconColor} border flex items-center justify-center ring-4 ring-background z-10 transition-transform group-hover:scale-110`}>
                                                                                 <Icon className="w-2.5 h-2.5" />
                                                                             </div>
 
