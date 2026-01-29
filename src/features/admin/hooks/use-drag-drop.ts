@@ -64,10 +64,22 @@ export function useDragDrop({ flows, setFlows, selectedCategory }: UseDragDropPr
             const [removed] = newSorted.splice(draggedIndex, 1)
             newSorted.splice(targetIndex, 0, removed)
 
-            const updatedCategories = prev.categories.map((cat) => {
-                const newOrder = newSorted.findIndex((c) => c.id === cat.id)
-                return { ...cat, order: newOrder }
-            })
+            const updatedCategories = newSorted.map((cat, idx) => ({ ...cat, order: idx }))
+
+            // Save order to backend
+            const saveReorder = async (items: { id: string; order: number }[]) => {
+                try {
+                    await fetch('/api/categories/reorder', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ items })
+                    })
+                } catch (e) {
+                    console.error("Failed to save category order", e)
+                }
+            }
+
+            saveReorder(updatedCategories.map(c => ({ id: c.id, order: c.order })))
 
             return { ...prev, categories: updatedCategories }
         })

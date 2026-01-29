@@ -5,13 +5,25 @@ export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url)
         const region = searchParams.get('region')
+        const search = searchParams.get('search')
 
-        const whereClause = region ? {
-            region: {
+        const whereClause: any = {}
+
+        if (region) {
+            whereClause.region = {
                 contains: region,
-                mode: 'insensitive' as const
+                mode: 'insensitive'
             }
-        } : {}
+        }
+
+        if (search) {
+            whereClause.OR = [
+                { firstName: { contains: search, mode: 'insensitive' } },
+                { lastName: { contains: search, mode: 'insensitive' } },
+                { username: { contains: search, mode: 'insensitive' } },
+                { telegramId: { contains: search, mode: 'insensitive' } }
+            ]
+        }
 
         const users = await prisma.user.findMany({
             where: whereClause,

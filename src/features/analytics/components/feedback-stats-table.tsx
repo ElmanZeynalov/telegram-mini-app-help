@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import {
     TableBody,
     TableCell,
@@ -9,7 +9,7 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { ThumbsUp, ThumbsDown, Loader2, User as UserIcon } from "lucide-react"
+import { ThumbsUp, ThumbsDown, Loader2, User as UserIcon, ArrowUpDown } from "lucide-react"
 import { format } from "date-fns"
 
 interface FeedbackStat {
@@ -36,10 +36,46 @@ interface FeedbackStatsTableProps {
     data?: FeedbackStat[]
 }
 
+type SortConfig = {
+    key: keyof FeedbackStat | 'score' | null
+    direction: 'asc' | 'desc'
+}
+
 export function FeedbackStatsTable({ data = [] }: FeedbackStatsTableProps) {
     const [selectedQuestion, setSelectedQuestion] = useState<string | null>(null)
     const [details, setDetails] = useState<FeedbackDetail[]>([])
     const [loadingDetails, setLoadingDetails] = useState(false)
+    const [sortConfig, setSortConfig] = useState<SortConfig>({ key: null, direction: 'desc' })
+
+    const handleSort = (key: keyof FeedbackStat | 'score') => {
+        setSortConfig((current) => ({
+            key,
+            direction: current.key === key && current.direction === 'desc' ? 'asc' : 'desc',
+        }))
+    }
+
+    const sortedData = useMemo(() => {
+        if (!sortConfig.key) return data
+
+        return [...data].sort((a, b) => {
+            let aValue: number
+            let bValue: number
+
+            if (sortConfig.key === 'score') {
+                aValue = a.total > 0 ? (a.yes / a.total) : 0
+                bValue = b.total > 0 ? (b.yes / b.total) : 0
+            } else if (sortConfig.key === 'question') {
+                return sortConfig.direction === 'asc'
+                    ? a.question.localeCompare(b.question)
+                    : b.question.localeCompare(a.question)
+            } else {
+                aValue = a[sortConfig.key as keyof FeedbackStat] as number
+                bValue = b[sortConfig.key as keyof FeedbackStat] as number
+            }
+
+            return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue
+        })
+    }, [data, sortConfig])
 
     const handleRowClick = async (question: string) => {
         if (selectedQuestion === question) {
@@ -76,32 +112,64 @@ export function FeedbackStatsTable({ data = [] }: FeedbackStatsTableProps) {
                         <table className="w-full caption-bottom text-sm text-left">
                             <TableHeader className="sticky top-0 bg-card z-10 shadow-sm">
                                 <TableRow className="hover:bg-transparent">
-                                    <TableHead className="bg-card w-[40%]">Question</TableHead>
-                                    <TableHead className="bg-card text-center">
+                                    <TableHead
+                                        className="bg-card w-[40%] cursor-pointer hover:bg-muted/50"
+                                        onClick={() => handleSort('question')}
+                                    >
+                                        <div className="flex items-center gap-1">
+                                            Question
+                                            <ArrowUpDown className="w-3 h-3 text-muted-foreground" />
+                                        </div>
+                                    </TableHead>
+                                    <TableHead
+                                        className="bg-card text-center cursor-pointer hover:bg-muted/50"
+                                        onClick={() => handleSort('yes')}
+                                    >
                                         <div className="flex items-center justify-center gap-2">
                                             <ThumbsUp className="w-4 h-4 text-primary" />
                                             Yes
+                                            <ArrowUpDown className="w-3 h-3 text-muted-foreground" />
                                         </div>
                                     </TableHead>
-                                    <TableHead className="bg-card text-center">
+                                    <TableHead
+                                        className="bg-card text-center cursor-pointer hover:bg-muted/50"
+                                        onClick={() => handleSort('no')}
+                                    >
                                         <div className="flex items-center justify-center gap-2">
                                             <ThumbsDown className="w-4 h-4 text-muted-foreground" />
                                             No
+                                            <ArrowUpDown className="w-3 h-3 text-muted-foreground" />
                                         </div>
                                     </TableHead>
-                                    <TableHead className="bg-card text-right">Total</TableHead>
-                                    <TableHead className="bg-card text-right">Score</TableHead>
+                                    <TableHead
+                                        className="bg-card text-right cursor-pointer hover:bg-muted/50"
+                                        onClick={() => handleSort('total')}
+                                    >
+                                        <div className="flex items-center justify-end gap-1">
+                                            Total
+                                            <ArrowUpDown className="w-3 h-3 text-muted-foreground" />
+                                        </div>
+                                    </TableHead>
+                                    <TableHead
+                                        className="bg-card text-right cursor-pointer hover:bg-muted/50"
+                                        onClick={() => handleSort('score')}
+                                    >
+                                        <div className="flex items-center justify-end gap-1">
+                                            Score
+                                            <ArrowUpDown className="w-3 h-3 text-muted-foreground" />
+                                        </div>
+                                    </TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {data.length === 0 ? (
+                                {sortedData.length === 0 ? (
                                     <TableRow>
                                         <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
                                             No feedback data yet.
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    data.map((item, index) => {
+                                    sortedData.map((item, index) => {
                                         const satisfaction = item.total > 0 ? Math.round((item.yes / item.total) * 100) : 0
                                         const isSelected = selectedQuestion === item.question
                                         return (
@@ -170,7 +238,9 @@ export function FeedbackStatsTable({ data = [] }: FeedbackStatsTableProps) {
                                                     {detail.user.firstName ? `${detail.user.firstName} ${detail.user.lastName || ''}` : 'Unknown User'}
                                                 </p>
                                                 <p className="text-xs text-muted-foreground truncate">
-                                                    {detail.user.username ? `@${detail.user.username}` : (detail.user.telegramId || 'No ID')}
+                                                    {detail.user.username && `@${detail.user.username}`}
+                                                    {detail.user.username && <span className="mx-1">•</span>}
+                                                    ID: {detail.user.telegramId || 'No ID'}
                                                 </p>
                                             </div>
                                         </div>

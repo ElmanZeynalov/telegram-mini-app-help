@@ -212,7 +212,24 @@ function FlowBuilderContent() {
           currentLangInfo={currentLangInfo}
           missingTranslationsCount={missingCount}
           onSetCurrentLang={setCurrentLang}
-          onSelectCategory={setSelectedCategory}
+          onSelectCategory={(id) => {
+            if (id === selectedCategory && id !== null) {
+              // If selecting the same category, reset to root
+              closePanel()
+              const category = flows.categories.find((c) => c.id === id)
+              if (category) {
+                setBreadcrumbs([
+                  {
+                    id: id,
+                    label: t(category.name, currentLang),
+                    type: "category",
+                  },
+                ])
+              }
+            } else {
+              setSelectedCategory(id)
+            }
+          }}
           onAddCategory={addCategory}
           onUpdateCategory={updateCategory}
           onDeleteCategory={handleDeleteCategory}
@@ -241,46 +258,48 @@ function FlowBuilderContent() {
           <div className="flex-1 overflow-y-auto p-6">
             {selectedCategory ? (
               <div className="max-w-4xl mx-auto space-y-4">
-                {/* Add Question Form */}
-                <Card className="border-dashed border-2 border-border bg-card/50">
-                  <CardContent className="p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium flex items-center gap-2">
-                        <Plus className="w-4 h-4" />
-                        Add New Question ({currentLangInfo.flag} {currentLangInfo.name})
-                      </label>
-                    </div>
-                    <RichTextEditor
-                      value={newQuestionText}
-                      onChange={setNewQuestionText}
-                      placeholder={`Type a new question with formatting...`}
-                      compact
-                      rows={2}
-                      onSubmit={() => {
-                        if (newQuestionText.trim()) {
-                          addQuestion(newQuestionText, selectedCategory)
-                        }
-                      }}
-                    />
-                    <div className="flex justify-end">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            onClick={() => addQuestion(newQuestionText, selectedCategory)}
-                            disabled={!newQuestionText.trim()}
-                            className="gap-2"
-                          >
-                            <Plus className="w-4 h-4" />
-                            Add Question
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom">
-                          <p>Creates a question - add answers or sub-questions after</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                  </CardContent>
-                </Card>
+                {/* Add Question Form - Only show at root level of category */}
+                {breadcrumbs.length <= 1 && (
+                  <Card className="border-dashed border-2 border-border bg-card/50">
+                    <CardContent className="p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium flex items-center gap-2">
+                          <Plus className="w-4 h-4" />
+                          Add New Question ({currentLangInfo.flag} {currentLangInfo.name})
+                        </label>
+                      </div>
+                      <RichTextEditor
+                        value={newQuestionText}
+                        onChange={setNewQuestionText}
+                        placeholder={`Type a new question with formatting...`}
+                        compact
+                        rows={2}
+                        onSubmit={() => {
+                          if (newQuestionText.trim()) {
+                            addQuestion(newQuestionText, selectedCategory)
+                          }
+                        }}
+                      />
+                      <div className="flex justify-end">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              onClick={() => addQuestion(newQuestionText, selectedCategory)}
+                              disabled={!newQuestionText.trim()}
+                              className="gap-2"
+                            >
+                              <Plus className="w-4 h-4" />
+                              Add Question
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom">
+                            <p>Creates a question - add answers or sub-questions after</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
                 <div className="text-xs text-muted-foreground mb-2 flex justify-between">
                   <span>Questions in DB: {flows.questions.length}</span>

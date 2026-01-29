@@ -1,6 +1,7 @@
+import Link from "next/link"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
-import { Download } from "lucide-react"
+import { Download, ArrowLeft } from "lucide-react"
 
 import {
     Select,
@@ -23,6 +24,12 @@ export function StatsHeader({ period, setPeriod, language, setLanguage, onExport
     return (
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
+                <Link href="/">
+                    <Button variant="outline" className="mb-4 gap-2 h-10 px-4 text-base font-medium border-primary/20 hover:border-primary/50 hover:bg-primary/5 transition-all">
+                        <ArrowLeft className="h-5 w-5" />
+                        Back to Admin Panel
+                    </Button>
+                </Link>
                 <h1 className="text-3xl font-bold tracking-tight">Analytics Dashboard</h1>
                 <p className="text-muted-foreground">
                     Overview of bot usage, content performance, and safety metrics.

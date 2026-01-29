@@ -75,7 +75,7 @@ export async function GET(request: Request) {
                 }
             },
             emergencyExitGroup: {
-                by: ['userId'],
+                by: ['userId'] as const,
                 where: {
                     eventType: 'emergency_exit',
                     createdAt: { gte: startDate },
@@ -92,7 +92,7 @@ export async function GET(request: Request) {
                 where: { ...userFilter }
             },
             regions: {
-                by: ['region'],
+                by: ['region'] as const,
                 _count: { region: true },
                 where: {
                     region: { not: null, notIn: ['az', 'ru', 'en'] },
@@ -109,24 +109,22 @@ export async function GET(request: Request) {
             }
         }
 
-        const [
-            recentSessions,
-            newUsersData,
-            viewEvents,
-            questionEvents,
-            emergencyExits,
-            emergencyExitUsersGroup,
-            totalSessions,
-            totalUsers,
-            regionGroups,
-            feedbackEvents
-        ] = await Promise.all([
+        // Batch 1: Timeline Data (heavier queries)
+        const [recentSessions, newUsersData] = await Promise.all([
             prisma.session.findMany(filterOptions.session),
             prisma.user.findMany(filterOptions.newUser),
+        ])
+
+        // Batch 2: Content & Events
+        const [viewEvents, questionEvents, emergencyExits, emergencyExitUsersGroup] = await Promise.all([
             prisma.analyticsEvent.findMany(filterOptions.viewCategory),
             prisma.analyticsEvent.findMany(filterOptions.viewQuestion),
             prisma.analyticsEvent.count(filterOptions.emergencyExitCount),
             prisma.analyticsEvent.groupBy(filterOptions.emergencyExitGroup),
+        ])
+
+        // Batch 3: Counts & Feedback
+        const [totalSessions, totalUsers, regionGroups, feedbackEvents] = await Promise.all([
             prisma.session.count(filterOptions.totalSessions),
             prisma.user.count(filterOptions.totalUsers),
             prisma.user.groupBy(filterOptions.regions),

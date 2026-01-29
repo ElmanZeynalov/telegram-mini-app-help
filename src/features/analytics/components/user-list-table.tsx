@@ -9,9 +9,11 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Loader2, X } from "lucide-react"
+import { Loader2, X, Search } from "lucide-react"
 import { format } from "date-fns"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { useDebounce } from "use-debounce"
 
 interface User {
     id: string
@@ -34,14 +36,18 @@ interface UserListTableProps {
 export function UserListTable({ regionFilter, onClearFilter, className }: UserListTableProps) {
     const [users, setUsers] = useState<User[]>([])
     const [loading, setLoading] = useState(true)
+    const [searchQuery, setSearchQuery] = useState("")
+    const [debouncedSearch] = useDebounce(searchQuery, 500)
 
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                // Construct URL with region filter if present
-                const url = regionFilter
-                    ? `/api/admin/users?region=${encodeURIComponent(regionFilter)}`
-                    : '/api/admin/users'
+                // Construct URL with region filter and search query
+                const params = new URLSearchParams()
+                if (regionFilter) params.set('region', regionFilter)
+                if (debouncedSearch) params.set('search', debouncedSearch)
+
+                const url = `/api/admin/users?${params.toString()}`
 
                 const res = await fetch(url)
                 if (!res.ok) throw new Error('Failed to fetch users')
@@ -61,7 +67,7 @@ export function UserListTable({ regionFilter, onClearFilter, className }: UserLi
         // Poll every 30 seconds
         const interval = setInterval(fetchUsers, 30000)
         return () => clearInterval(interval)
-    }, [regionFilter]) // Re-run when regionFilter changes
+    }, [regionFilter, debouncedSearch]) // Re-run when filter or search changes
 
     return (
         <Card className={`transition-all duration-300 ease-in-out ${className}`}>
@@ -79,17 +85,29 @@ export function UserListTable({ regionFilter, onClearFilter, className }: UserLi
                         </p>
                     )}
                 </div>
-                {regionFilter && (
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={onClearFilter}
-                        className="h-8 px-2 lg:px-3 text-muted-foreground hover:text-foreground"
-                    >
-                        <X className="mr-2 h-4 w-4" />
-                        Clear Filter
-                    </Button>
-                )}
+                <div className="flex items-center gap-2">
+                    <div className="relative">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            type="search"
+                            placeholder="Search users..."
+                            className="w-[200px] lg:w-[300px] pl-9"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
+                    {regionFilter && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={onClearFilter}
+                            className="h-8 px-2 lg:px-3 text-muted-foreground hover:text-foreground"
+                        >
+                            <X className="mr-2 h-4 w-4" />
+                            Clear Filter
+                        </Button>
+                    )}
+                </div>
             </CardHeader>
             <CardContent>
                 {loading ? (
@@ -149,6 +167,6 @@ export function UserListTable({ regionFilter, onClearFilter, className }: UserLi
                     </div>
                 )}
             </CardContent>
-        </Card>
+        </Card >
     )
 }
