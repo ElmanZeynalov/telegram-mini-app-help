@@ -5,40 +5,58 @@ import { decrypt } from "@/lib/auth";
 export async function middleware(request: NextRequest) {
     const path = request.nextUrl.pathname;
 
-    // Define protected routes pattern
-    const isProtectedRoute =
-        path === "/" ||
-        path.startsWith("/miniapp/admin") ||
-        path.startsWith("/stats");
+    // 1. Define Public Routes (Always accessible)
+    // - /login
+    // - /miniapp (BUT NOT /miniapp/admin)
+    // - /api/auth/* (Login/Logout)
+    // - /api/questions (GET only)
+    // - /api/categories (GET only)
 
-    if (isProtectedRoute) {
-        const cookie = request.cookies.get("admin_session");
+    const isPublicPage =
+        path === "/login" ||
+        (path.startsWith("/miniapp") && !path.startsWith("/miniapp/admin"));
 
-        if (!cookie) {
-            return NextResponse.redirect(new URL("/login", request.url));
-        }
+    const isPublicApi =
+        path.startsWith("/api/auth") ||
+        (path.startsWith("/api/questions") && request.method === "GET") ||
+        (path.startsWith("/api/categories") && request.method === "GET");
 
-        const session = await decrypt(cookie.value);
-
-        if (!session) {
-            return NextResponse.redirect(new URL("/login", request.url));
-        }
-
-        // Add user info to headers if needed, or just allow
+    if (isPublicPage || isPublicApi) {
         return NextResponse.next();
+    }
+
+    // 2. Everything else is Protected
+    // This includes:
+    // - / (Root)
+    // - /miniapp/admin/*
+    // - /api/admin/*
+    // - /api/questions (POST/PUT/DELETE)
+    // - /stats/*
+
+    const cookie = request.cookies.get("admin_session");
+
+    if (!cookie) {
+        if (path.startsWith("/api")) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+        return NextResponse.redirect(new URL("/login", request.url));
+    }
+
+    const session = await decrypt(cookie.value);
+
+    if (!session) {
+        if (path.startsWith("/api")) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+        return NextResponse.redirect(new URL("/login", request.url));
     }
 
     return NextResponse.next();
 }
 
 export const config = {
-    // Matcher for protected routes. 
-    // Note: We match more broadly here to ensure we catch everything, 
-    // but the logic inside filters specifically. 
-    // Alternatively, we can just match the protected routes directly.
+    // Match all paths except static files and images
     matcher: [
-        "/",
-        "/miniapp/admin/:path*",
-        "/stats/:path*"
+        "/((?!_next/static|_next/image|favicon.ico).*)",
     ],
 };

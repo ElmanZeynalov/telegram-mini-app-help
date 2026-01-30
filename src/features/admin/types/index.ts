@@ -21,6 +21,8 @@ export interface Question {
     keywords?: string[]
     subQuestions?: Question[]
     translations?: any[]
+    createdBy?: string | null
+    updatedBy?: string | null
     order: number
     createdAt: string
 }

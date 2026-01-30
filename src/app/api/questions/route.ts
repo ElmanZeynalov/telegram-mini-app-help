@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { Prisma } from "@prisma/client"
+import { getSession } from "@/lib/auth"
 
 export const dynamic = 'force-dynamic'
 
@@ -74,11 +75,16 @@ export async function POST(request: Request) {
 
         const newOrder = firstQuestion ? firstQuestion.order - 1 : 0
 
+        const session = await getSession()
+        const userEmail = session?.user?.email
+
         const question = await prisma.question.create({
             data: {
                 categoryId,
                 parentId,
                 order: newOrder,
+                createdBy: userEmail,
+                updatedBy: userEmail,
                 translations: {
                     create: translations,
                 },
@@ -126,10 +132,17 @@ export async function PUT(request: Request) {
                 // 2. If creating new record, MUST use fallback if provided is empty.
                 const titleForCreate = (t.question && t.question.trim().length > 0) ? t.question : fallbackTitle
 
-                // For update: If payload has empty string, do we overwrite? 
-                // If we are editing ANSWER only, frontend might send empty question or fallback.
                 // Safest: If payload question is empty/falsy, do NOT update the DB field (use undefined).
                 const titleForUpdate = (t.question && t.question.trim().length > 0) ? t.question : undefined
+
+                const session = await getSession()
+                const userEmail = session?.user?.email
+
+                // Also update the parent Question's updatedBy field
+                await prisma.question.update({
+                    where: { id },
+                    data: { updatedBy: userEmail }
+                })
 
                 await prisma.questionTranslation.upsert({
                     where: {

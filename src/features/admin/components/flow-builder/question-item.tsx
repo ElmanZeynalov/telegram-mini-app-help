@@ -350,6 +350,22 @@ export function QuestionItem({
                     )}
                 </div>
 
+                {/* Audit Info */}
+                {(question.createdBy || question.updatedBy) && (
+                    <div className="mt-3 pt-3 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground">
+                        {question.createdBy && (
+                            <div className="flex items-center gap-1">
+                                <span className="font-semibold">Created by:</span> {question.createdBy}
+                            </div>
+                        )}
+                        {question.updatedBy && (
+                            <div className="flex items-center gap-1">
+                                <span className="font-semibold">Last updated by:</span> {question.updatedBy}
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 {/* Expandable Panels */}
                 {isActive && activePanel && (
                     <div className="mt-4 pt-4 border-t border-border">

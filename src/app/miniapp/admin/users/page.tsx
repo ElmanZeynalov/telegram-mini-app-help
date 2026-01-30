@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { UserPlus, ArrowLeft, Trash2, Shield, Lock, Key } from "lucide-react"
+import { UserPlus, Trash2, ChevronLeft, Shield, Key } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
@@ -159,10 +159,10 @@ export default function UsersPage() {
 
     return (
         <div className="p-6 space-y-8 max-w-4xl mx-auto">
-            <div className="flex items-center gap-4">
-                <Link href="/miniapp/admin">
+            <div className="flex items-center gap-4 mb-8">
+                <Link href="/">
                     <Button variant="ghost" size="icon">
-                        <ArrowLeft className="h-5 w-5" />
+                        <ChevronLeft className="w-4 h-4" />
                     </Button>
                 </Link>
                 <h1 className="text-3xl font-bold">User Management</h1>
