@@ -112,3 +112,12 @@ model AnalyticsEvent {
   @@index([sessionId])
   @@index([userId])
 }
+
+model AdminUser {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String   // hashed
+  role      String   @default("admin")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

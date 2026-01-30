@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Globe } from "lucide-react"
+import { ChevronLeft, ChevronRight, Globe, User, LogOut, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
     Tooltip,
@@ -6,23 +6,74 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import Link from "next/link"
 import { Breadcrumb, AVAILABLE_LANGUAGES } from "../../types"
 
 interface FlowHeaderProps {
     breadcrumbs: Breadcrumb[]
     navigateToBreadcrumb: (index: number) => void
     currentLangInfo: typeof AVAILABLE_LANGUAGES[0]
+    user: any // We'll assume the user object is passed here
 }
 
 export function FlowHeader({
     breadcrumbs,
     navigateToBreadcrumb,
     currentLangInfo,
+    user
 }: FlowHeaderProps) {
     if (breadcrumbs.length === 0) {
         return (
-            <div className="border-b border-border bg-card p-4">
+            <div className="border-b border-border bg-card p-4 flex items-center justify-between">
                 <div className="text-muted-foreground text-sm">Select a category to start</div>
+                <div className="flex items-center gap-2">
+                    {/* User Profile Dropdown */}
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium text-sm">
+                                    {user?.email?.charAt(0).toUpperCase() || "A"}
+                                </div>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-56" align="end" forceMount>
+                            <DropdownMenuLabel className="font-normal">
+                                <div className="flex flex-col space-y-1">
+                                    <p className="text-sm font-medium leading-none">{user?.email}</p>
+                                    <p className="text-xs leading-none text-muted-foreground capitalize">
+                                        {user?.role}
+                                    </p>
+                                </div>
+                            </DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem asChild>
+                                <Link href="/miniapp/admin/users" className="cursor-pointer w-full flex items-center">
+                                    <Settings className="mr-2 h-4 w-4" />
+                                    <span>Settings</span>
+                                </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-red-600 focus:text-red-600 focus:bg-red-50" onClick={async () => {
+                                try {
+                                    await fetch('/api/auth/logout', { method: 'POST' })
+                                    window.location.href = '/login'
+                                } catch (error) {
+                                    console.error('Logout failed:', error)
+                                }
+                            }}>
+                                <LogOut className="mr-2 h-4 w-4" />
+                                <span>Log out</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
             </div>
         )
     }
@@ -65,7 +116,7 @@ export function FlowHeader({
                     ))}
                 </div>
 
-                <div className="ml-auto flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="ml-auto flex items-center gap-4 text-sm text-muted-foreground">
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
@@ -83,6 +134,47 @@ export function FlowHeader({
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
+
+                    <div className="h-4 w-px bg-border mx-2" />
+
+                    {/* User Profile Dropdown */}
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="relative h-8 w-8 rounded-full border border-border p-0">
+                                <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium text-sm">
+                                    {user?.email?.charAt(0).toUpperCase() || "A"}
+                                </div>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-56" align="end" forceMount>
+                            <DropdownMenuLabel className="font-normal">
+                                <div className="flex flex-col space-y-1">
+                                    <p className="text-sm font-medium leading-none">{user?.email}</p>
+                                    <p className="text-xs leading-none text-muted-foreground capitalize">
+                                        {user?.role}
+                                    </p>
+                                </div>
+                            </DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem asChild>
+                                <Link href="/miniapp/admin/users" className="cursor-pointer w-full flex items-center">
+                                    <Settings className="mr-2 h-4 w-4" />
+                                    <span>Settings</span>
+                                </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-red-600 focus:text-red-600 focus:bg-red-50" onClick={async () => {
+                                try {
+                                    await fetch('/api/auth/logout', { method: 'POST' })
+                                    window.location.href = '/login'
+                                } catch (error) {
+                                    console.error('Logout failed:', error)
+                                }
+                            }}>
+                                <LogOut className="mr-2 h-4 w-4" />
+                                <span>Log out</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
         </div>
