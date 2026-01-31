@@ -10,7 +10,7 @@ import {
     DialogTitle,
     DialogDescription,
 } from "@/components/ui/dialog"
-import { UserDetailData } from "@/types/analytics"
+import { UserDetailData, AnalyticsEvent } from "@/types/analytics"
 import { UserProfileSidebar } from "./user-detail/user-profile-sidebar"
 import { EventsTab } from "./user-detail/events-tab"
 import { SessionsTab } from "./user-detail/sessions-tab"
@@ -24,6 +24,9 @@ interface UserDetailDialogProps {
 export function UserDetailDialog({ userId, onClose }: UserDetailDialogProps) {
     const [data, setData] = useState<UserDetailData | null>(null)
     const [loading, setLoading] = useState(false)
+    const [activeTab, setActiveTab] = useState("events")
+    const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null)
+    const [sessionEventsCache, setSessionEventsCache] = useState<Record<string, AnalyticsEvent[]>>({}) // Cache for full session histories
 
     useEffect(() => {
         const fetchData = async () => {
@@ -43,7 +46,30 @@ export function UserDetailDialog({ userId, onClose }: UserDetailDialogProps) {
         fetchData()
     }, [userId])
 
+    const handleSelectSession = async (sessionId: string) => {
+        setSelectedSessionId(sessionId)
+        setActiveTab("events")
+
+        // Fetch full history if not in cache
+        if (!sessionEventsCache[sessionId]) {
+            try {
+                const res = await fetch(`/api/admin/sessions/${sessionId}/events`)
+                if (res.ok) {
+                    const sessionEvents = await res.json()
+                    setSessionEventsCache(prev => ({ ...prev, [sessionId]: sessionEvents }))
+                }
+            } catch (e) {
+                console.error("Failed to fetch session events", e)
+            }
+        }
+    }
+
     const { sessions, events, feedback } = data || {}
+
+    // If filtering by session, use cached full history if available, otherwise current partial list
+    const displayedEvents = selectedSessionId
+        ? (sessionEventsCache[selectedSessionId] || events)
+        : events
 
     return (
         <Dialog open={!!userId} onOpenChange={(open) => !open && onClose()}>
@@ -56,7 +82,7 @@ export function UserDetailDialog({ userId, onClose }: UserDetailDialogProps) {
                 {/* Right Content: Activity */}
                 <div className="flex-1 flex flex-col min-h-0 bg-background/50">
                     {data && (
-                        <Tabs defaultValue="events" className="flex-1 flex flex-col min-h-0">
+                        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
                             <div className="px-6 py-4 border-b flex items-center justify-between bg-background sticky top-0 z-10">
                                 <h3 className="font-semibold text-lg">Activity History</h3>
                                 <TabsList>
@@ -68,11 +94,18 @@ export function UserDetailDialog({ userId, onClose }: UserDetailDialogProps) {
 
                             <div className="flex-1 overflow-hidden relative">
                                 <TabsContent value="events" className="h-full m-0 absolute inset-0">
-                                    <EventsTab events={events} />
+                                    <EventsTab
+                                        events={displayedEvents}
+                                        selectedSessionId={selectedSessionId}
+                                        onClearFilter={() => setSelectedSessionId(null)}
+                                    />
                                 </TabsContent>
 
                                 <TabsContent value="sessions" className="h-full m-0 absolute inset-0">
-                                    <SessionsTab sessions={sessions} />
+                                    <SessionsTab
+                                        sessions={sessions}
+                                        onSelectSession={handleSelectSession}
+                                    />
                                 </TabsContent>
 
                                 <TabsContent value="feedback" className="h-full m-0 absolute inset-0">

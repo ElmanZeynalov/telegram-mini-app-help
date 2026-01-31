@@ -25,53 +25,39 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
 
     // Initialize Session
     useEffect(() => {
-        console.log("[Analytics] Init effect. Telegram Init:", isTelegramInitialized)
-
         // Wait for Telegram SDK to initialize before starting session
         if (!isTelegramInitialized) return
 
         // Prevent double tracking
-        if (isTrackingInitialized.current) {
-            console.log("[Analytics] Already initialized, skipping.")
-            return
-        }
+        if (isTrackingInitialized.current) return
         isTrackingInitialized.current = true
 
         const initSession = async () => {
-            console.log("[Analytics] Starting session...")
             try {
                 // DO NOT check local storage for existing session.
                 // We want a FRESH session on every app load (as requested: Open -> Start, Close -> End).
 
                 // Track 'session_start' which handles creation
-                const body = {
-                    eventType: "session_start",
-                    telegramId: user?.id ? String(user.id) : undefined,
-                    // existingSessionId: undefined, // Always force new
-                    firstName: user?.first_name,
-                    lastName: user?.last_name,
-                    username: user?.username,
-                    metadata: { language: locale } // Inject language
-                };
-                console.log("[Analytics] Sending session_start payload:", body)
-
                 const res = await fetch("/api/analytics/track", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(body),
+                    body: JSON.stringify({
+                        eventType: "session_start",
+                        telegramId: user?.id ? String(user.id) : undefined,
+                        // existingSessionId: undefined, // Always force new
+                        firstName: user?.first_name,
+                        lastName: user?.last_name,
+                        username: user?.username,
+                        metadata: { language: locale } // Inject language
+                    }),
                 })
-
-                console.log("[Analytics] session_start response status:", res.status)
 
                 if (res.ok) {
                     const data = await res.json()
-                    console.log("[Analytics] Session created:", data)
                     if (data.sessionId) {
                         setSessionId(data.sessionId)
                         // Do NOT save to localStorage
                     }
-                } else {
-                    console.error("[Analytics] Failed to create session:", await res.text())
                 }
             } catch (e) {
                 console.error("Failed to init analytics session", e)
@@ -79,8 +65,10 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
         }
 
         initSession()
+    }, [isTelegramInitialized, user, locale])
 
-        // Handle Session End on Unload / Hide
+    // Handle Session End on Unload / Hide
+    useEffect(() => {
         const handleSessionEnd = () => {
             if (!sessionId) return
 

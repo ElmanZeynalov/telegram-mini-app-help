@@ -8,15 +8,21 @@ import { getLocalizedText } from "../../utils"
 
 interface EventsTabProps {
     events: AnalyticsEvent[] | undefined
+    selectedSessionId?: string | null
+    onClearFilter?: () => void
 }
 
-export function EventsTab({ events }: EventsTabProps) {
+export function EventsTab({ events, selectedSessionId, onClearFilter }: EventsTabProps) {
     // Memoize the heavy event processing logic
     const sessionGroups = useMemo(() => {
         if (!events) return [];
 
+        const filteredEvents = selectedSessionId
+            ? events.filter(e => e.sessionId === selectedSessionId)
+            : events;
+
         const eventsBySession: Record<string, AnalyticsEvent[]> = {};
-        events.forEach((event) => {
+        filteredEvents.forEach((event) => {
             const sessionId = event.sessionId || 'unknown';
             if (!eventsBySession[sessionId]) eventsBySession[sessionId] = [];
             eventsBySession[sessionId].push(event);
@@ -54,11 +60,27 @@ export function EventsTab({ events }: EventsTabProps) {
                 sessionDate
             };
         }).filter((group): group is SessionGroup => group !== null);
-    }, [events]);
+    }, [events, selectedSessionId]);
 
     return (
         <ScrollArea className="h-full pr-4">
             <div className="p-6 space-y-8">
+                {selectedSessionId && (
+                    <div className="flex items-center justify-between bg-muted/30 p-4 rounded-lg border mb-4">
+                        <div className="flex flex-col">
+                            <span className="font-semibold text-sm">Filtering by Session</span>
+                            <span className="text-xs text-muted-foreground font-mono">{selectedSessionId}</span>
+                        </div>
+                        {onClearFilter && (
+                            <button
+                                onClick={onClearFilter}
+                                className="text-xs bg-background border px-3 py-1.5 rounded-md hover:bg-accent transition-colors font-medium"
+                            >
+                                Show All Sessions
+                            </button>
+                        )}
+                    </div>
+                )}
                 {sessionGroups.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8">
                         <Clock className="h-8 w-8 mb-2 opacity-20" />

@@ -5,18 +5,23 @@ import { AnalyticsSession } from "@/types/analytics"
 
 interface SessionsTabProps {
     sessions: AnalyticsSession[] | undefined
+    onSelectSession?: (sessionId: string) => void
 }
 
-export function SessionsTab({ sessions }: SessionsTabProps) {
+export function SessionsTab({ sessions, onSelectSession }: SessionsTabProps) {
     return (
         <ScrollArea className="h-full">
             <div className="p-6 space-y-3">
                 {sessions?.map((session) => (
-                    <div key={session.id} className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors">
+                    <div
+                        key={session.id}
+                        onClick={() => onSelectSession?.(session.id)}
+                        className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors cursor-pointer group"
+                    >
                         <div className="flex items-center gap-3">
-                            <div className="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
+                            <div className="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)] group-hover:scale-125 transition-transform" />
                             <div className="flex flex-col">
-                                <span className="font-medium text-sm">Session Started</span>
+                                <span className="font-medium text-sm group-hover:text-primary transition-colors">Session Started</span>
                                 <span className="text-xs text-muted-foreground font-mono">Ref: {session.id.slice(0, 8)}</span>
                             </div>
                         </div>
