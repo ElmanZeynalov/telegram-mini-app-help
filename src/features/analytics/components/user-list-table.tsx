@@ -153,7 +153,7 @@ export function UserListTable({ regionFilter, onClearFilter, className }: UserLi
                                             </TableCell>
                                             <TableCell>{user.telegramId}</TableCell>
                                             <TableCell>{user.region || '-'}</TableCell>
-                                            <TableCell>{user.language.toUpperCase()}</TableCell>
+                                            <TableCell>{(user.language || '-').toUpperCase()}</TableCell>
                                             <TableCell className="text-right">{user.sessionCount}</TableCell>
                                             <TableCell className="text-right">
                                                 {format(new Date(user.createdAt), "MMM d, yyyy")}

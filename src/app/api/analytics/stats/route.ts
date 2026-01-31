@@ -54,11 +54,11 @@ export async function GET(request: Request) {
             },
             viewCategory: {
                 where: {
-                    eventType: 'view_category',
+                    eventType: { in: ['view_category', 'view_categories'] },
                     createdAt: { gte: startDate },
                     ...eventFilter
                 },
-                select: { metadata: true }
+                select: { eventType: true, metadata: true }
             },
             viewQuestion: {
                 where: {
@@ -75,14 +75,14 @@ export async function GET(request: Request) {
                 }
             },
             emergencyExitGroup: {
-                by: ['userId'] as const,
+                by: ['userId'] as any,
                 where: {
                     eventType: 'emergency_exit',
                     createdAt: { gte: startDate },
                     ...eventFilter
                 },
                 _count: { userId: true },
-                orderBy: { _count: { userId: 'desc' as const } },
+                orderBy: { _count: { userId: 'desc' } },
                 take: 20
             },
             totalSessions: {
@@ -92,7 +92,7 @@ export async function GET(request: Request) {
                 where: { ...userFilter }
             },
             regions: {
-                by: ['region'] as const,
+                by: ['region'] as any,
                 _count: { region: true },
                 where: {
                     region: { not: null, notIn: ['az', 'ru', 'en'] },
@@ -173,7 +173,17 @@ export async function GET(request: Request) {
 
         const categoryCounts: Record<string, number> = {}
         viewEvents.forEach((event: any) => {
+            // Special handling for 'view_categories' which often has no metadata (it's the menu itself)
+            if (event.eventType === 'view_categories') {
+                const name = language === 'az' ? 'Kateqoriyalar Menyusu' :
+                    language === 'ru' ? 'Меню категорий' : 'Categories Menu'
+                categoryCounts[name] = (categoryCounts[name] || 0) + 1
+                return
+            }
+
             const rawName = event.metadata?.name
+            if (!rawName) return // Skip if no name and not the menu event
+
             const name = extractName(rawName)
             categoryCounts[name] = (categoryCounts[name] || 0) + 1
         })

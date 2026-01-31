@@ -80,8 +80,8 @@ export async function POST(request: Request) {
 
         const question = await prisma.question.create({
             data: {
-                categoryId,
-                parentId,
+                ...(categoryId ? { category: { connect: { id: categoryId } } } : {}),
+                ...(parentId ? { parent: { connect: { id: parentId } } } : {}),
                 order: newOrder,
                 createdBy: userEmail,
                 updatedBy: userEmail,
@@ -103,7 +103,8 @@ export async function POST(request: Request) {
 
         return NextResponse.json(formattedQuestion)
     } catch (error) {
-        return NextResponse.json({ error: "Failed to create question" }, { status: 500 })
+        console.error("POST Question Error:", error)
+        return NextResponse.json({ error: "Failed to create question", details: String(error) }, { status: 500 })
     }
 }
 

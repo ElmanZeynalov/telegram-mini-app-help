@@ -12,14 +12,18 @@ export async function middleware(request: NextRequest) {
     // - /api/questions (GET only)
     // - /api/categories (GET only)
 
+    const isStaticFile = path.match(/\.(svg|png|jpg|jpeg|gif|webp|webmanifest|ico)$/);
+
     const isPublicPage =
         path === "/login" ||
-        (path.startsWith("/miniapp") && !path.startsWith("/miniapp/admin"));
+        (path.startsWith("/miniapp") && !path.startsWith("/miniapp/admin")) ||
+        isStaticFile;
 
     const isPublicApi =
         path.startsWith("/api/auth") ||
         (path.startsWith("/api/questions") && request.method === "GET") ||
-        (path.startsWith("/api/categories") && request.method === "GET");
+        (path.startsWith("/api/categories") && request.method === "GET") ||
+        path === "/api/analytics/track";
 
     if (isPublicPage || isPublicApi) {
         return NextResponse.next();

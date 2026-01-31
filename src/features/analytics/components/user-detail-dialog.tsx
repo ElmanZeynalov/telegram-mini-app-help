@@ -7,6 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
     Dialog,
     DialogContent,
+    DialogTitle,
+    DialogDescription,
 } from "@/components/ui/dialog"
 import { UserDetailData } from "@/types/analytics"
 import { UserProfileSidebar } from "./user-detail/user-profile-sidebar"
@@ -46,6 +48,8 @@ export function UserDetailDialog({ userId, onClose }: UserDetailDialogProps) {
     return (
         <Dialog open={!!userId} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className="!max-w-[80vw] !w-[80vw] h-[85vh] p-0 gap-0 overflow-hidden flex flex-col md:flex-row bg-background">
+                <DialogTitle className="sr-only">User Details</DialogTitle>
+                <DialogDescription className="sr-only">Detailed analytics for the selected user.</DialogDescription>
                 {/* Left Sidebar: User Identity */}
                 <UserProfileSidebar loading={loading} data={data} onClose={onClose} />
 
